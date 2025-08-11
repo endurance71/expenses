@@ -1,0 +1,125 @@
+{
+  "name": "Dashboard Wydatków - Manager Finansów",
+  "short_name": "Wydatki",  
+  "description": "Twój osobisty manager wydatków - śledź swoje finanse w prostej i intuicyjnej aplikacji",
+  "lang": "pl",
+  "start_url": "/dashboard.html",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#1e1e1f",
+  "background_color": "#F2F2F7",
+  "scope": "/",
+  "id": "dashboard-wydatki",
+  "categories": ["finance", "productivity", "business"],
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='375' height='812' viewBox='0 0 375 812'%3E%3Crect width='375' height='812' fill='%23F2F2F7'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='system-ui' font-size='24' fill='%23007AFF'%3EDashboard Wydatków%3C/text%3E%3C/svg%3E",
+      "sizes": "375x812",
+      "type": "image/svg+xml",
+      "form_factor": "narrow",
+      "label": "Widok mobilny aplikacji"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1280' height='800' viewBox='0 0 1280 800'%3E%3Crect width='1280' height='800' fill='%23F2F2F7'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='system-ui' font-size='32' fill='%23007AFF'%3EDashboard Wydatków - Desktop%3C/text%3E%3C/svg%3E",
+      "sizes": "1280x800",
+      "type": "image/svg+xml",
+      "form_factor": "wide",
+      "label": "Widok desktopowy aplikacji"
+    }
+  ],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='192' height='192' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='32' fill='%23007AFF'/%3E%3Ctext x='96' y='120' text-anchor='middle' font-size='80' fill='white'%3E💰%3C/text%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='512' height='512' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='64' fill='%23007AFF'/%3E%3Ctext x='256' y='320' text-anchor='middle' font-size='200' fill='white'%3E💰%3C/text%3E%3C/svg%3E",
+      "sizes": "512x512", 
+      "type": "image/svg+xml",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "apple touch icon"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='152' height='152' viewBox='0 0 152 152'%3E%3Crect width='152' height='152' rx='24' fill='%23007AFF'/%3E%3Ctext x='76' y='95' text-anchor='middle' font-size='60' fill='white'%3E💰%3C/text%3E%3C/svg%3E",
+      "sizes": "152x152",
+      "type": "image/svg+xml",
+      "purpose": "apple touch icon"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Crect width='120' height='120' rx='20' fill='%23007AFF'/%3E%3Ctext x='60' y='75' text-anchor='middle' font-size='50' fill='white'%3E💰%3C/text%3E%3C/svg%3E",
+      "sizes": "120x120",
+      "type": "image/svg+xml",
+      "purpose": "apple touch icon"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23007AFF'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-size='16' fill='white'%3E💰%3C/text%3E%3C/svg%3E",
+      "sizes": "32x32",
+      "type": "image/svg+xml",
+      "purpose": "favicon"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23007AFF'/%3E%3Ctext x='8' y='11' text-anchor='middle' font-size='8' fill='white'%3E💰%3C/text%3E%3C/svg%3E",
+      "sizes": "16x16",
+      "type": "image/svg+xml",
+      "purpose": "favicon"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Odśwież dane",
+      "short_name": "Odśwież",
+      "description": "Pobierz najnowsze dane o wydatkach",
+      "url": "/dashboard.html?action=refresh",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='16' fill='%2334C759'/%3E%3Cpath d='M48 20v8m0 40v8m28-28h-8M20 48h8' stroke='white' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M68.5 27.5 64 32l4.5 4.5M27.5 68.5 32 64l-4.5-4.5' stroke='white' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Statystyki",
+      "short_name": "Stats",
+      "description": "Zobacz szczegółowe statystyki wydatków",
+      "url": "/dashboard.html?view=stats",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='16' fill='%23AF52DE'/%3E%3Crect x='20' y='60' width='12' height='16' fill='white' rx='2'/%3E%3Crect x='42' y='40' width='12' height='36' fill='white' rx='2'/%3E%3Crect x='64' y='25' width='12' height='51' fill='white' rx='2'/%3E%3C/svg%3E",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Prywatne",
+      "short_name": "Prywatne",
+      "description": "Zobacz wydatki prywatne",
+      "url": "/dashboard.html?category=Prywatne",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='16' fill='%2334C759'/%3E%3Cpath d='M48 25 30 40v36h36V40L48 25z' fill='white'/%3E%3Crect x='40' y='55' width='16' height='21' fill='%2334C759'/%3E%3C/svg%3E",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ],
+  "display_override": ["standalone", "minimal-ui"],
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  },
+  "handle_links": "preferred",
+  "related_applications": [],
+  "prefer_related_applications": false
+}

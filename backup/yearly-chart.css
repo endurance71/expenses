@@ -1,0 +1,318 @@
+/* =================================
+   YEARLY-CHART.CSS - Style dla wykresu rocznego
+   Wersja: 1.0.0
+   ================================= */
+
+/* Główna sekcja wykresu rocznego */
+#yearlyChartSection {
+    margin: var(--spacing-xl) 0;
+}
+
+#yearlyChartSection .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--spacing-lg);
+    flex-wrap: wrap;
+}
+
+/* Kontener kontrolek */
+.yearly-chart-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--spacing-md);
+}
+
+/* Przełącznik typu wykresu */
+.chart-type-switcher {
+    display: flex;
+    background: var(--quaternary-system-fill);
+    border-radius: var(--radius-sm);
+    padding: 2px;
+    gap: 2px;
+    border: 0.33px solid var(--separator);
+}
+
+.chart-type-button {
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--secondary-label);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-out-timing);
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.chart-type-button svg {
+    width: 16px;
+    height: 16px;
+    stroke-width: 2;
+}
+
+.chart-type-button:not(.active):hover {
+    color: var(--label);
+    background: var(--quaternary-system-fill);
+}
+
+.chart-type-button.active {
+    background: var(--system-background);
+    color: var(--label);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    font-weight: 600;
+}
+
+.chart-type-button:active {
+    transform: scale(0.96);
+}
+
+/* Przycisk ładowania wykresu */
+.yearly-load-button {
+    background: var(--ios-blue);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-out-timing);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+    min-width: 140px;
+    justify-content: center;
+}
+
+.yearly-load-button svg {
+    width: 16px;
+    height: 16px;
+    stroke-width: 2;
+}
+
+.yearly-load-button:hover:not(:disabled) {
+    opacity: 0.8;
+    transform: scale(1.02);
+}
+
+.yearly-load-button:active:not(:disabled) {
+    transform: scale(0.98);
+}
+
+.yearly-load-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Legenda kategorii */
+.yearly-chart-legend {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-lg);
+    padding: var(--spacing-md);
+    flex-wrap: wrap;
+    border-bottom: 0.33px solid var(--separator);
+}
+
+.yearly-legend-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.yearly-legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    border: 0.33px solid rgba(0, 0, 0, 0.1);
+}
+
+.yearly-legend-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--label);
+}
+
+/* Kontener wykresu */
+.yearly-chart-container {
+    position: relative;
+    height: 400px;
+    padding: var(--spacing-lg);
+}
+
+#yearlyExpenseChart {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Statystyki roczne */
+.yearly-stats-card {
+    opacity: 0;
+    transition: all 0.5s ease;
+    animation: fadeInUp 0.5s ease-out forwards;
+}
+
+.yearly-stats-card:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.yearly-stats-card:nth-child(2) {
+    animation-delay: 0.3s;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Loading state */
+.yearly-chart-loading .yearly-load-button {
+    animation: pulse 2s infinite ease-in-out;
+    pointer-events: none;
+}
+
+.yearly-chart-loading .chart-type-switcher {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+@keyframes pulse {
+    0%, 100% { 
+        opacity: 1; 
+        transform: scale(1);
+    }
+    50% { 
+        opacity: 0.7; 
+        transform: scale(0.98);
+    }
+}
+
+/* Error state */
+.yearly-chart-error {
+    border: 1px solid var(--ios-red);
+    background: rgba(255, 69, 58, 0.05);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    #yearlyChartSection .card-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--spacing-md);
+    }
+    
+    .yearly-chart-controls {
+        align-items: stretch;
+    }
+    
+    .chart-type-switcher {
+        align-self: center;
+        width: fit-content;
+    }
+    
+    .yearly-load-button {
+        width: 100%;
+    }
+    
+    .yearly-chart-legend {
+        gap: var(--spacing-md);
+    }
+    
+    .yearly-chart-container {
+        height: 300px;
+        padding: var(--spacing-md);
+    }
+}
+
+@media (max-width: 480px) {
+    .yearly-chart-legend {
+        flex-direction: column;
+        align-items: center;
+        gap: var(--spacing-sm);
+    }
+    
+    .chart-type-switcher {
+        width: 100%;
+    }
+    
+    .chart-type-button {
+        flex: 1;
+        justify-content: center;
+    }
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+    .chart-type-switcher {
+        background: var(--tertiary-system-fill);
+    }
+    
+    .chart-type-button.active {
+        background: var(--secondary-system-background);
+        box-shadow: 0 1px 3px rgba(255, 255, 255, 0.1);
+    }
+    
+    .yearly-legend-color {
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .yearly-chart-error {
+        background: rgba(255, 69, 58, 0.15);
+        border-color: var(--ios-red);
+    }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+    .yearly-stats-card {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
+    
+    .yearly-load-button {
+        animation: none !important;
+    }
+    
+    .chart-type-button {
+        transition: none !important;
+    }
+}
+
+/* Focus states for accessibility */
+.chart-type-button:focus-visible,
+.yearly-load-button:focus-visible {
+    outline: 2px solid var(--ios-blue);
+    outline-offset: 2px;
+}
+
+/* Print styles */
+@media print {
+    .yearly-chart-controls {
+        display: none;
+    }
+    
+    .yearly-chart-container {
+        height: 300px;
+        break-inside: avoid;
+    }
+    
+    .yearly-stats-card {
+        break-inside: avoid;
+    }
+}
