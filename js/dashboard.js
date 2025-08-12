@@ -1,6 +1,6 @@
 // =================================
 // DASHBOARD.JS - Dashboard Manager
-// Version: 1.0.3
+// Version: 1.0.4 - FIXED
 // =================================
 
 window.DashboardManager = {
@@ -339,6 +339,16 @@ window.DashboardManager = {
         
         if (!sheet || !backdrop || !sheetTitle || !sheetContent) return;
         
+        // Apply proper backdrop styling
+        backdrop.style.background = 'rgba(0, 0, 0, 0.4)';
+        backdrop.style.backdropFilter = 'blur(10px)';
+        backdrop.style.webkitBackdropFilter = 'blur(10px)';
+        
+        // Block body scroll
+        document.body.style.overflow = 'hidden';
+        //document.body.style.position = 'fixed';
+        document.body.style.width = '100%';
+        
         sheetTitle.textContent = `${title} - Transakcje`;
         
         if (!transactions || transactions.length === 0) {
@@ -381,6 +391,11 @@ window.DashboardManager = {
     hideBottomSheet() {
         const sheet = document.getElementById('transactionSheet');
         const backdrop = document.getElementById('sheetBackdrop');
+        
+        // Restore body scroll
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.width = '';
         
         if (sheet) sheet.classList.remove('open');
         if (backdrop) backdrop.classList.remove('open');

@@ -586,8 +586,8 @@ body {
     opacity: 0;
     visibility: hidden;
     transition: all var(--duration-normal) ease;
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .sheet-backdrop.open {
@@ -1074,4 +1074,53 @@ body {
 .tab-item:focus-visible {
     outline: 2px solid var(--ios-blue);
     outline-offset: 2px;
+}
+
+
+
+
+
+
+/* Fix for body when bottom sheet is open */
+body.sheet-open {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+}
+
+/* Dark mode poprawka dla backdrop */
+@media (prefers-color-scheme: dark) {
+    .sheet-backdrop {
+        background: rgba(0, 0, 0, 0.6);
+    }
+}
+
+/* Poprawka dla przycisku Dodaj w tab bar */
+.tab-item#addExpenseTab.active .tab-icon {
+    transform: rotate(45deg);
+    background: var(--ios-red);
+}
+
+/* Poprawka inputa kwoty dla iOS */
+input[type="tel"]#amount {
+    font-size: 17px;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+/* Zapobieganie przewijaniu tła przy otwartym formularzu */
+.app-container.form-open {
+    position: fixed;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Ulepszone style dla payment type select */
+#paymentType {
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 20px;
+    padding-right: 40px;
 }

@@ -19,7 +19,7 @@
     <link rel="manifest" href="/manifest.json">
     
     <!-- Stylesheets -->
-    <link rel="stylesheet" href="/css/main.css?v-1">
+    <link rel="stylesheet" href="/css/main.css?v2.1">
     <link rel="stylesheet" href="/css/yearly-chart.css?v-1">
    <!-- Stylesheets -->
     
@@ -401,9 +401,15 @@
 
                     <!-- Amount -->
                     <div class="form-group">
-                        <label class="form-label" for="amount">Kwota (PLN)</label>
-                        <input type="number" id="amount" class="form-input" step="0.01" placeholder="0.00" required>
-                    </div>
+                    <label class="form-label" for="amount">Kwota (PLN)</label>
+                    <input type="tel" 
+                        id="amount" 
+                        class="form-input" 
+                        pattern="[0-9]*\.?[0-9]*" 
+                        inputmode="decimal"
+                        placeholder="0.00" 
+                        required>
+                </div>
 
                     <!-- Submit Button -->
                     <button type="submit" class="submit-button">
@@ -418,13 +424,13 @@
     </div>
 
     <!-- JavaScript Files -->
-    <script src="/js/config.js?v1"></script>
-    <script src="/js/utils.js?v1"></script>
-    <script src="/js/api.js?v1"></script>
-    <script src="/js/haptic.js?v1"></script>
-    <script src="/js/yearly-chart.js?v1"></script>
-    <script src="/js/expense-form.js?v1"></script>
-    <script src="/js/dashboard.js?v1"></script>
-    <script src="/js/app.js?v1"></script>
+    <script src="/js/config.js?v2"></script>
+    <script src="/js/utils.js?v2"></script>
+    <script src="/js/api.js?v2"></script>
+    <script src="/js/haptic.js?v2"></script>
+    <script src="/js/yearly-chart.js?v2"></script>
+    <script src="/js/expense-form.js?v2.1"></script>
+    <script src="/js/dashboard.js?v2.1"></script>
+    <script src="/js/app.js?v2"></script>
 </body>
 </html>
