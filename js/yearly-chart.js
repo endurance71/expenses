@@ -1,66 +1,59 @@
 // =================================
-// YEARLY-CHART.JS - Roczny wykres wydatków - FIXED FOR NEW API
-// Wersja: 2.0.0 - Dostosowany do nowego API endpoint
+// YEARLY-CHART.JS - Roczny wykres wydatków
+// Version: 2.0.1 - FIXED
 // =================================
 
-class YearlyChart {
-    constructor() {
-        this.chart = null;
-        this.yearlyData = null;
-        this.currentYear = new Date().getFullYear();
-        this.currentChartType = 'line'; // domyślnie liniowy
-        this.isLoading = false;
-    }
-
-    // NOWE: Pobierz dane za cały rok z nowego API endpoint
+window.YearlyChartManager = {
+    // Chart state
+    chart: null,
+    yearlyData: null,
+    currentYear: new Date().getFullYear(),
+    currentChartType: 'line',
+    isLoading: false,
+    
+    // Initialize
+    init() {
+        Utils.debugLog('Initializing Yearly Chart Manager');
+        // Auto-load chart after delay
+        setTimeout(() => {
+            this.loadChart();
+        }, 500);
+    },
+    
+    // Check if chart is visible
+    isVisible() {
+        const section = document.getElementById('yearlyChartSection');
+        return section && !section.classList.contains('hidden');
+    },
+    
+    // Load chart
+    async loadChart() {
+        if (this.isLoading) {
+            Utils.debugLog('Already loading yearly chart');
+            return;
+        }
+        
+        const yearSelect = document.getElementById('yearSelect');
+        const year = yearSelect ? yearSelect.value : this.currentYear;
+        
+        await this.updateYearlyChart('yearlyExpenseChart', year);
+    },
+    
+    // Fetch yearly data
     async fetchYearlyData(year) {
-        console.log(`📅 [YearlyChart] Fetching yearly data for ${year} from new API`);
+        Utils.debugLog(`📅 Fetching yearly data for ${year}`);
         
         try {
-            // Użyj nowego endpointu który zwraca dane za cały rok
-            const url = new URL('https://jan204-20204.wykr.es/webhook/dashboard-wydatki-yearly');
-            url.searchParams.set('year', year);
-            
-            console.log(`🌐 [YearlyChart] Requesting: ${url.toString()}`);
-            
-            const response = await fetch(url.toString(), {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                    'Cache-Control': 'no-cache'
-                },
-                mode: 'cors'
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-            
-            const text = await response.text();
-            if (!text.trim()) {
-                throw new Error('Empty response from server');
-            }
-            
-            const data = JSON.parse(text);
-            console.log('✅ [YearlyChart] Received yearly data:', data);
-            
-            // Sprawdź czy dane są w nowym formacie
-            if (data.year && data.months && Array.isArray(data.months)) {
-                console.log(`📊 [YearlyChart] Processing ${data.months.length} months of data`);
-                return data.months; // Zwróć tablicę miesięcy
-            } else {
-                throw new Error('Invalid data format from API');
-            }
-            
+            const data = await window.APIService.fetchYearlyData(year);
+            Utils.debugLog('✅ Received yearly data:', data);
+            return data;
         } catch (error) {
-            console.error('❌ [YearlyChart] Error fetching yearly data:', error);
-            
-            // Fallback - generuj puste dane
+            Utils.debugLog('❌ Error fetching yearly data:', error);
             return this.generateEmptyYearData(year);
         }
-    }
-
-    // Generuj puste dane dla całego roku
+    },
+    
+    // Generate empty year data
     generateEmptyYearData(year) {
         const currentDate = new Date();
         const currentYear = currentDate.getFullYear();
@@ -78,84 +71,81 @@ class YearlyChart {
                 monthName: monthNames[month - 1],
                 data: {
                     monthlyExpenses: 0,
-                    expenseCategories: [
-                        { name: 'Prywatne', amount: 0, transactionCount: 0 },
-                        { name: 'MT HUB', amount: 0, transactionCount: 0 },
-                        { name: 'FHU', amount: 0, transactionCount: 0 }
-                    ]
+                    expenseCategories: Object.keys(APP_CONFIG.CATEGORIES).map(name => ({
+                        name: name,
+                        amount: 0,
+                        transactionCount: 0
+                    }))
                 }
             });
         }
         
         return emptyData;
-    }
-
-    // Przygotuj dane do wykresu - DOSTOSOWANE DO NOWEGO FORMATU
+    },
+    
+    // Prepare chart data
     prepareChartData(yearlyData, chartType = 'line') {
-        console.log(`🔧 [YearlyChart] Preparing ${chartType} chart data`);
+        Utils.debugLog(`🔧 Preparing ${chartType} chart data`);
         
-        const months = yearlyData.map(item => item.monthName ? item.monthName.substring(0, 3) : `M${item.month}`);
-        const categories = ['Prywatne', 'MT HUB', 'FHU'];
-        const colors = {
-            'Prywatne': '#34C759',
-            'MT HUB': '#007AFF', 
-            'FHU': '#FF2D92'
-        };
-
-        const datasets = categories.map(category => {
+        const months = yearlyData.map(item => 
+            item.monthName ? item.monthName.substring(0, 3) : `M${item.month}`
+        );
+        
+        const categories = Object.keys(APP_CONFIG.CATEGORIES);
+        const datasets = [];
+        
+        categories.forEach(category => {
+            const categoryConfig = APP_CONFIG.CATEGORIES[category];
             const data = yearlyData.map(monthData => {
-                // Sprawdź czy dane są w strukturze data.expenseCategories
-                const categoryData = monthData.data?.expenseCategories?.find(cat => cat.name === category);
-                return categoryData?.amount || 0;
+                if (monthData.data && monthData.data.expenseCategories) {
+                    const categoryData = monthData.data.expenseCategories.find(cat => cat.name === category);
+                    return categoryData?.amount || 0;
+                }
+                return 0;
             });
-
-            console.log(`📈 [YearlyChart] ${category} data:`, data);
             
             const hasData = data.some(value => value > 0);
-            console.log(`📊 [YearlyChart] ${category} has data:`, hasData);
-
+            
             if (chartType === 'line') {
-                return {
+                datasets.push({
                     label: category,
                     data: data,
-                    borderColor: colors[category],
-                    backgroundColor: hasData ? this.createGradient(colors[category]) : 'transparent',
+                    borderColor: categoryConfig.color,
+                    backgroundColor: hasData ? this.createGradient(categoryConfig.color) : 'transparent',
                     borderWidth: hasData ? 3 : 1,
                     fill: hasData,
                     tension: 0.4,
-                    pointBackgroundColor: colors[category],
+                    pointBackgroundColor: categoryConfig.color,
                     pointBorderColor: '#ffffff',
                     pointBorderWidth: 2,
                     pointRadius: hasData ? 6 : 3,
                     pointHoverRadius: hasData ? 8 : 5,
-                    pointHoverBackgroundColor: colors[category],
+                    pointHoverBackgroundColor: categoryConfig.color,
                     pointHoverBorderColor: '#ffffff',
                     pointHoverBorderWidth: 3,
                     hidden: !hasData
-                };
+                });
             } else {
-                return {
+                datasets.push({
                     label: category,
                     data: data,
-                    backgroundColor: colors[category],
-                    borderColor: colors[category],
+                    backgroundColor: categoryConfig.color,
+                    borderColor: categoryConfig.color,
                     borderWidth: 0,
                     borderRadius: 6,
                     borderSkipped: false,
                     hidden: !hasData
-                };
+                });
             }
         });
-
-        // Sprawdź czy są jakiekolwiek dane
+        
+        // Check if there's any data
         const totalDataPoints = datasets.reduce((sum, dataset) => {
             return sum + dataset.data.reduce((dataSum, value) => dataSum + value, 0);
         }, 0);
         
-        console.log(`📊 [YearlyChart] Total data points value:`, totalDataPoints);
-        
         if (totalDataPoints === 0) {
-            console.log(`⚠️ [YearlyChart] No data found, adding placeholder`);
+            Utils.debugLog('⚠️ No data found, adding placeholder');
             datasets.push({
                 label: 'Brak danych',
                 data: Array(months.length).fill(1),
@@ -164,71 +154,62 @@ class YearlyChart {
                 borderWidth: 1
             });
         }
-
+        
         return {
             labels: months,
             datasets: datasets
         };
-    }
-
-    // Utwórz gradient
+    },
+    
+    // Create gradient
     createGradient(color) {
         const canvas = document.getElementById('yearlyExpenseChart');
-        if (!canvas) {
-            console.warn('⚠️ [YearlyChart] Canvas not found for gradient creation');
-            return color;
-        }
+        if (!canvas) return color;
         
         const ctx = canvas.getContext('2d');
-        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-        gradient.addColorStop(0, color + '40');
-        gradient.addColorStop(1, color + '05');
-        return gradient;
-    }
-
-    // Utwórz wykres
+        try {
+            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, color + '40');
+            gradient.addColorStop(1, color + '05');
+            return gradient;
+        } catch (error) {
+            return color;
+        }
+    },
+    
+    // Create chart
     createChart(canvasId, yearlyData, chartType = 'line') {
-        console.log(`📊 [YearlyChart] Creating ${chartType} chart`);
+        Utils.debugLog(`📊 Creating ${chartType} chart`);
         
         const ctx = document.getElementById(canvasId);
         if (!ctx) {
-            console.error(`❌ [YearlyChart] Canvas ${canvasId} not found`);
-            setTimeout(() => {
-                const retryCtx = document.getElementById(canvasId);
-                if (retryCtx) {
-                    this.createChart(canvasId, yearlyData, chartType);
-                }
-            }, 500);
+            Utils.debugLog(`❌ Canvas ${canvasId} not found`);
             return;
         }
-
+        
         if (typeof Chart === 'undefined') {
-            console.error('❌ [YearlyChart] Chart.js not loaded');
-            this.showError(ctx, 'Chart.js nie został załadowany');
+            Utils.debugLog('❌ Chart.js not loaded');
+            Utils.showError('Chart.js nie został załadowany');
             return;
         }
-
+        
+        // Destroy previous chart
         if (this.chart) {
-            console.log('🗑️ [YearlyChart] Destroying previous chart');
             this.chart.destroy();
             this.chart = null;
         }
-
+        
         const chartData = this.prepareChartData(yearlyData, chartType);
         this.currentChartType = chartType;
-
+        
         try {
             const isStacked = chartType === 'bar';
-            
-            const realData = chartData.datasets.filter(dataset => 
+            const hasRealData = chartData.datasets.some(dataset => 
                 dataset.label !== 'Brak danych' && 
                 dataset.data.some(value => value > 0)
             );
             
-            const hasRealData = realData.length > 0;
-            console.log(`📊 [YearlyChart] Chart has real data:`, hasRealData);
-            
-            // Tytuł wykresu
+            // Title
             const currentDate = new Date();
             const currentYear = currentDate.getFullYear();
             const currentMonth = currentDate.getMonth() + 1;
@@ -299,13 +280,12 @@ class YearlyChart {
                                 },
                                 label: function(context) {
                                     const label = context.dataset.label;
-                                    const value = formatCurrency ? formatCurrency(context.parsed.y) : `${context.parsed.y} zł`;
+                                    const value = Utils.formatCurrency(context.parsed.y);
                                     return `${label}: ${value}`;
                                 },
                                 footer: function(context) {
                                     const total = context.reduce((sum, item) => sum + item.parsed.y, 0);
-                                    const totalFormatted = formatCurrency ? formatCurrency(total) : `${total} zł`;
-                                    return `Razem: ${totalFormatted}`;
+                                    return `Razem: ${Utils.formatCurrency(total)}`;
                                 }
                             }
                         }
@@ -335,7 +315,7 @@ class YearlyChart {
                                 color: getComputedStyle(document.documentElement).getPropertyValue('--secondary-label') || '#666',
                                 callback: function(value) {
                                     if (!hasRealData && value <= 1) return '';
-                                    return formatCurrency ? formatCurrency(value) : `${value} zł`;
+                                    return Utils.formatCurrency(value);
                                 }
                             }
                         }
@@ -343,83 +323,67 @@ class YearlyChart {
                     animation: {
                         duration: chartType === 'line' ? 1500 : 1000,
                         easing: 'easeOutCubic'
-                    },
-                    elements: {
-                        line: {
-                            borderJoinStyle: 'round'
-                        }
                     }
                 }
             });
-
-            console.log('✅ [YearlyChart] Chart created successfully');
-
+            
+            Utils.debugLog('✅ Chart created successfully');
+            
         } catch (error) {
-            console.error('❌ [YearlyChart] Failed to create chart:', error);
-            this.showError(ctx, 'Nie można utworzyć wykresu rocznego: ' + error.message);
+            Utils.debugLog('❌ Failed to create chart:', error);
+            this.showError(ctx, 'Nie można utworzyć wykresu: ' + error.message);
         }
-    }
-
-    // Przełącz typ wykresu
+    },
+    
+    // Switch chart type
     switchChartType(type) {
-        console.log(`🔄 [YearlyChart] Switching to ${type} chart`);
+        Utils.debugLog(`🔄 Switching to ${type} chart`);
         
         if (!this.yearlyData) {
-            console.warn('⚠️ [YearlyChart] No data available for chart type switch');
+            Utils.debugLog('⚠️ No data available for chart type switch');
             return;
         }
         
         this.currentChartType = type;
         this.createChart('yearlyExpenseChart', this.yearlyData, type);
         
-        // Update przycisków
+        // Update buttons
         document.querySelectorAll('.chart-type-button').forEach(btn => {
             btn.classList.remove('active');
         });
+        
         const activeButton = document.querySelector(`[data-type="${type}"]`);
         if (activeButton) {
             activeButton.classList.add('active');
         }
-    }
-
-    // Pokaż loading
-    showLoading(ctx) {
-        console.log('⏳ [YearlyChart] Showing loading state');
         
+        HapticManager.selection();
+    },
+    
+    // Show loading
+    showLoading(ctx) {
         let container = ctx;
         if (ctx && ctx.parentElement) {
             container = ctx.parentElement;
-        } else if (typeof ctx === 'string') {
-            const element = document.getElementById(ctx);
-            container = element ? element.parentElement : null;
         }
         
-        if (!container) {
-            console.warn('⚠️ [YearlyChart] Container not found for loading state');
-            return;
-        }
+        if (!container) return;
         
         container.innerHTML = `
             <div style="display: flex; align-items: center; justify-content: center; height: 400px; color: var(--secondary-label);">
                 <div style="text-align: center;">
                     <div class="loading-spinner" style="width: 32px; height: 32px; border: 3px solid var(--quaternary-system-fill); border-top: 3px solid var(--ios-blue); border-radius: 50%; margin: 0 auto 16px; animation: spin 1s linear infinite;"></div>
-                    <div style="font-size: 17px; font-weight: 500; margin-bottom: 4px;">Ładowanie danych rocznych...</div>
-                    <div id="yearlyProgress" style="font-size: 15px; opacity: 0.8;">Pobieranie danych z API...</div>
+                    <div style="font-size: 17px; font-weight: 500;">Ładowanie danych rocznych...</div>
                 </div>
             </div>
         `;
-    }
-
-    // Pokaż błąd
+    },
+    
+    // Show error
     showError(ctx, message) {
-        console.error(`❌ [YearlyChart] Showing error: ${message}`);
-        
         let container = ctx;
         if (ctx && ctx.parentElement) {
             container = ctx.parentElement;
-        } else if (typeof ctx === 'string') {
-            const element = document.getElementById(ctx);
-            container = element ? element.parentElement : null;
         }
         
         if (!container) {
@@ -432,53 +396,46 @@ class YearlyChart {
                     <div style="text-align: center;">
                         <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
                         <div style="font-size: 17px; font-weight: 500; margin-bottom: 8px;">${message}</div>
-                        <button onclick="loadYearlyChart()" style="background: var(--ios-blue); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 14px; cursor: pointer;">
+                        <button onclick="YearlyChartManager.loadChart()" style="background: var(--ios-blue); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 14px; cursor: pointer;">
                             Spróbuj ponownie
                         </button>
                     </div>
                 </div>
             `;
         }
-    }
-
-    // Główna funkcja aktualizacji - UPROSZCZONA DLA NOWEGO API
+    },
+    
+    // Main update function
     async updateYearlyChart(canvasId, year = null) {
         if (this.isLoading) {
-            console.warn('⚠️ [YearlyChart] Already loading, skipping request');
+            Utils.debugLog('⚠️ Already loading, skipping request');
             return;
         }
-
+        
         this.isLoading = true;
         
         if (!year) year = this.currentYear;
         this.currentYear = year;
-
-        console.log(`🔄 [YearlyChart] Starting update for year ${year}`);
-
+        
+        Utils.debugLog(`🔄 Starting update for year ${year}`);
+        
         let ctx = document.getElementById(canvasId);
         if (!ctx) {
-            console.warn(`⚠️ [YearlyChart] Canvas ${canvasId} not found, waiting...`);
-            await new Promise(resolve => setTimeout(resolve, 100));
-            ctx = document.getElementById(canvasId);
-            
-            if (!ctx) {
-                console.error(`❌ [YearlyChart] Canvas ${canvasId} still not found after wait`);
-                this.isLoading = false;
-                return;
-            }
+            Utils.debugLog(`❌ Canvas ${canvasId} not found`);
+            this.isLoading = false;
+            return;
         }
-
-        // Pokaż loading
+        
+        // Show loading
         this.showLoading(ctx);
-
+        
         try {
-            // Pobierz dane za cały rok z nowego API
+            // Fetch yearly data
             this.yearlyData = await this.fetchYearlyData(year);
             
-            // Upewnij się, że canvas nadal istnieje
+            // Ensure canvas still exists
             ctx = document.getElementById(canvasId);
             if (!ctx) {
-                console.warn(`⚠️ [YearlyChart] Canvas disappeared, recreating...`);
                 const container = document.querySelector('#yearlyChartSection .yearly-chart-container');
                 if (container) {
                     container.innerHTML = `<canvas id="${canvasId}" role="img" aria-label="Wykres roczny wydatków według kategorii"></canvas>`;
@@ -486,57 +443,58 @@ class YearlyChart {
                 }
                 
                 if (!ctx) {
-                    throw new Error(`Nie można odtworzyć elementu canvas: ${canvasId}`);
+                    throw new Error(`Cannot create canvas: ${canvasId}`);
                 }
             }
             
-            // Utwórz wykres
+            // Create chart
             this.createChart(canvasId, this.yearlyData, this.currentChartType);
-
-            // Pokaż statystyki
+            
+            // Calculate and show stats
             const stats = this.calculateYearlyStats();
             if (stats) {
                 this.updateYearlyStats(stats);
             }
-
-            // Update przycisku
-            const loadButton = document.querySelector('#yearlyChartSection .yearly-load-button');
+            
+            // Update button
+            const loadButton = document.getElementById('loadYearlyChartBtn');
             if (loadButton) {
                 loadButton.textContent = 'Odśwież wykres';
                 loadButton.disabled = false;
             }
-
-            console.log('✅ [YearlyChart] Update completed successfully');
-
+            
+            Utils.debugLog('✅ Update completed successfully');
+            
         } catch (error) {
-            console.error('❌ [YearlyChart] Update failed:', error);
-            this.showError(ctx, 'Błąd podczas ładowania danych rocznych: ' + error.message);
+            Utils.debugLog('❌ Update failed:', error);
+            this.showError(ctx, 'Błąd podczas ładowania danych: ' + error.message);
         } finally {
             this.isLoading = false;
         }
-    }
-
-    // Oblicz statystyki roczne - DOSTOSOWANE DO NOWEGO FORMATU
+    },
+    
+    // Calculate yearly stats
     calculateYearlyStats() {
-        if (!this.yearlyData) {
-            console.warn('⚠️ [YearlyChart] No data for stats calculation');
-            return null;
-        }
-
-        console.log('📊 [YearlyChart] Calculating yearly statistics');
-
+        if (!this.yearlyData) return null;
+        
         const stats = {
             totalExpenses: 0,
-            categoryTotals: { 'Prywatne': 0, 'MT HUB': 0, 'FHU': 0 },
-            monthlyAverages: { 'Prywatne': 0, 'MT HUB': 0, 'FHU': 0 },
+            categoryTotals: {},
+            monthlyAverages: {},
             highestMonth: null,
             lowestMonth: null,
             monthsWithData: 0
         };
-
+        
+        // Initialize category totals
+        Object.keys(APP_CONFIG.CATEGORIES).forEach(category => {
+            stats.categoryTotals[category] = 0;
+            stats.monthlyAverages[category] = 0;
+        });
+        
         let monthlyTotals = [];
-
-        // Oblicz sumy - dostosowane do nowego formatu
+        
+        // Calculate totals
         this.yearlyData.forEach(monthData => {
             let monthTotal = 0;
             let hasDataThisMonth = false;
@@ -554,29 +512,25 @@ class YearlyChart {
                     }
                 });
             }
-
+            
             if (hasDataThisMonth) {
                 stats.monthsWithData++;
             }
-
+            
             monthlyTotals.push({
                 month: monthData.monthName,
                 total: monthTotal,
                 hasData: hasDataThisMonth
             });
         });
-
-        // Oblicz średnie miesięczne
-        const currentDate = new Date();
-        const currentYear = currentDate.getFullYear();
-        const maxMonthsInYear = (this.currentYear == currentYear) ? (currentDate.getMonth() + 1) : 12;
-        const divisor = stats.monthsWithData > 0 ? stats.monthsWithData : maxMonthsInYear;
         
+        // Calculate averages
+        const divisor = stats.monthsWithData > 0 ? stats.monthsWithData : 12;
         Object.keys(stats.categoryTotals).forEach(category => {
             stats.monthlyAverages[category] = Math.round(stats.categoryTotals[category] / divisor);
         });
-
-        // Znajdź najwyższy i najniższy miesiąc
+        
+        // Find highest and lowest month
         const monthsWithData = monthlyTotals.filter(m => m.hasData && m.total > 0);
         
         if (monthsWithData.length > 0) {
@@ -587,48 +541,32 @@ class YearlyChart {
             stats.highestMonth = { month: 'Brak danych', total: 0 };
             stats.lowestMonth = { month: 'Brak danych', total: 0 };
         }
-
-        console.log('📈 [YearlyChart] Stats calculated:', {
-            total: stats.totalExpenses,
-            monthsWithData: stats.monthsWithData,
-            highest: stats.highestMonth,
-            lowest: stats.lowestMonth
-        });
-
-        return stats;
-    }
-
-    // Aktualizuj statystyki roczne
-    updateYearlyStats(stats) {
-        console.log('📊 [YearlyChart] Updating stats UI');
         
+        return stats;
+    },
+    
+    // Update yearly stats UI
+    updateYearlyStats(stats) {
         const elements = {
             totalYearlyExpenses: document.getElementById('totalYearlyExpenses'),
             avgMonthlyExpenses: document.getElementById('avgMonthlyExpenses'),
             highestMonthExpenses: document.getElementById('highestMonthExpenses'),
             lowestMonthExpenses: document.getElementById('lowestMonthExpenses')
         };
-
+        
         if (elements.totalYearlyExpenses) {
-            const formatted = formatCurrency ? formatCurrency(stats.totalExpenses) : `${stats.totalExpenses} zł`;
-            elements.totalYearlyExpenses.textContent = formatted;
+            elements.totalYearlyExpenses.textContent = Utils.formatCurrency(stats.totalExpenses);
         }
         
         if (elements.avgMonthlyExpenses) {
-            const currentDate = new Date();
-            const currentYear = currentDate.getFullYear();
-            const maxMonthsInYear = (this.currentYear == currentYear) ? (currentDate.getMonth() + 1) : 12;
-            const divisor = stats.monthsWithData > 0 ? stats.monthsWithData : maxMonthsInYear;
-            
-            const avgMonthly = Math.round(stats.totalExpenses / divisor);
-            const formatted = formatCurrency ? formatCurrency(avgMonthly) : `${avgMonthly} zł`;
-            elements.avgMonthlyExpenses.textContent = formatted;
+            const avgMonthly = Math.round(stats.totalExpenses / (stats.monthsWithData || 12));
+            elements.avgMonthlyExpenses.textContent = Utils.formatCurrency(avgMonthly);
         }
         
         if (elements.highestMonthExpenses) {
             if (stats.highestMonth && stats.highestMonth.total > 0) {
-                const amount = formatCurrency ? formatCurrency(stats.highestMonth.total) : `${stats.highestMonth.total} zł`;
-                elements.highestMonthExpenses.textContent = `${stats.highestMonth.month}: ${amount}`;
+                elements.highestMonthExpenses.textContent = 
+                    `${stats.highestMonth.month}: ${Utils.formatCurrency(stats.highestMonth.total)}`;
             } else {
                 elements.highestMonthExpenses.textContent = 'Brak danych';
             }
@@ -636,14 +574,14 @@ class YearlyChart {
         
         if (elements.lowestMonthExpenses) {
             if (stats.lowestMonth && stats.lowestMonth.total > 0) {
-                const amount = formatCurrency ? formatCurrency(stats.lowestMonth.total) : `${stats.lowestMonth.total} zł`;
-                elements.lowestMonthExpenses.textContent = `${stats.lowestMonth.month}: ${amount}`;
+                elements.lowestMonthExpenses.textContent = 
+                    `${stats.lowestMonth.month}: ${Utils.formatCurrency(stats.lowestMonth.total)}`;
             } else {
                 elements.lowestMonthExpenses.textContent = 'Brak danych';
             }
         }
-
-        // Pokaż sekcje ze statystykami z animacją
+        
+        // Show stats cards with animation
         const statsCards = document.querySelectorAll('.yearly-stats-card');
         statsCards.forEach((card, index) => {
             setTimeout(() => {
@@ -653,11 +591,18 @@ class YearlyChart {
                 });
             }, index * 200);
         });
-    }
-
-    // Wyczyść wykres
+    },
+    
+    // Refresh chart
+    async refresh() {
+        const yearSelect = document.getElementById('yearSelect');
+        const year = yearSelect ? yearSelect.value : this.currentYear;
+        await this.updateYearlyChart('yearlyExpenseChart', year);
+    },
+    
+    // Destroy chart
     destroy() {
-        console.log('🗑️ [YearlyChart] Destroying chart instance');
+        Utils.debugLog('🗑️ Destroying yearly chart');
         if (this.chart) {
             this.chart.destroy();
             this.chart = null;
@@ -665,55 +610,9 @@ class YearlyChart {
         this.yearlyData = null;
         this.isLoading = false;
     }
-}
-
-// =================================
-// GLOBALNE FUNKCJE I INSTANCJA
-// =================================
-
-// Globalna instancja
-const yearlyChart = new YearlyChart();
-
-// Funkcje globalne dla HTML onclick
-window.yearlyChart = yearlyChart;
-
-window.switchYearlyChartType = function(type) {
-    console.log(`🔄 [Global] Switching chart type to: ${type}`);
-    yearlyChart.switchChartType(type);
 };
 
-window.loadYearlyChart = function() {
-    console.log('🔄 [Global] Loading yearly chart...');
-    
-    const canvas = document.getElementById('yearlyExpenseChart');
-    console.log('🔍 [Global] Canvas check:', canvas ? 'Found' : 'Not found');
-    
-    const container = document.querySelector('#yearlyChartSection .yearly-chart-container');
-    console.log('🔍 [Global] Container check:', container ? 'Found' : 'Not found');
-    
-    const yearSelect = document.getElementById('yearSelect');
-    const year = yearSelect ? yearSelect.value : new Date().getFullYear();
-    console.log('🔍 [Global] Selected year:', year);
-    
-    yearlyChart.updateYearlyChart('yearlyExpenseChart', year);
-};
-
-// Auto-load przy załadowaniu strony
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('📊 Page loaded - auto-loading chart...');
-    setTimeout(() => {
-        loadYearlyChart();
-    }, 500);
-});
-
-// Auto-cleanup przy zamknięciu strony
-window.addEventListener('beforeunload', () => {
-    yearlyChart.destroy();
-});
-
-// Export dla modułów (jeśli używane)
+// Export for module usage
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { YearlyChart, yearlyChart };
+    module.exports = window.YearlyChartManager;
 }
-
-console.log('📊 [YearlyChart] Module loaded successfully - Version 2.0.0');

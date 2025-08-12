@@ -14,950 +14,19 @@
     
     <title>Dashboard Wydatków</title>
     
-    <!-- PWA Icons -->
-   <link rel="apple-touch-icon" sizes="180x180" href="/icon-180.png">
-    <link rel="manifest" href="manifest.json">
+    <!-- PWA Icons & Manifest -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/icon-180.png">
+    <link rel="manifest" href="/manifest.json">
     
-    <!-- Chart.css -->
-    <link rel="stylesheet" href="yearly-chart.css">
-
-    <!-- Chart.js -->
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="/css/main.css?v-1">
+    <link rel="stylesheet" href="/css/yearly-chart.css?v-1">
+   <!-- Stylesheets -->
+    
+    <!-- Chart.js Library -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
-    
-    <!-- Haptic Feedback Polyfill -->
-    <script>
-        if (!navigator.vibrate) {
-            navigator.vibrate = function() { return false; };
-        }
-    </script>
-
-    <style>
-        /* =================================
-           iOS Native Design System - 2025
-           ================================= */
-        
-        :root {
-
-
-
-
-
-             /* Nowe iOS viewport units */
-             --viewport-height-small: 100svh; /* Small viewport */
-             --viewport-height-large: 100lvh; /* Large viewport */  
-             --viewport-height-dynamic: 100dvh; /* Dynamic viewport */
-
-            /* iOS Safe Areas */
-            --safe-area-top: env(safe-area-inset-top);
-            --safe-area-bottom: env(safe-area-inset-bottom);
-            --safe-area-left: env(safe-area-inset-left);
-            --safe-area-right: env(safe-area-inset-right);
-            
-            /* iOS Typography Scale - SF Pro */
-            --font-large-title: -apple-system-headline1;
-            --font-title-1: -apple-system-headline2;
-            --font-title-2: -apple-system-headline3;
-            --font-headline: -apple-system-headline4;
-            --font-body: -apple-system-body;
-            --font-callout: -apple-system-callout;
-            --font-subheadline: -apple-system-subheadline;  
-            --font-footnote: -apple-system-footnote;
-            --font-caption: -apple-system-caption1;
-            
-            /* Modern iOS Colors - Light Mode */
-            --ios-blue: #007AFF;
-            --ios-green: #34C759;
-            --ios-orange: #FF9500;
-            --ios-red: #FF453A;
-            --ios-purple: #BF5AF2;
-            --ios-yellow: #FFD60A;
-            --ios-mint: #00C7BE;
-            --ios-pink: #FF2D92;
-            --ios-gray: #8E8E93;
-            
-            /* System Background Colors */
-            --system-background: #FFFFFF;
-            --secondary-system-background: #F2F2F7;
-            --tertiary-system-background: #FFFFFF;
-            
-            /* Grouped Background Colors */
-            --system-grouped-background: #F2F2F7;
-            --secondary-system-grouped-background: #FFFFFF;
-            --tertiary-system-grouped-background: #F2F2F7;
-            
-            /* Label Colors */
-            --label: #000000;
-            --secondary-label: rgba(60, 60, 67, 0.6);
-            --tertiary-label: rgba(60, 60, 67, 0.75);
-            --quaternary-label: rgba(60, 60, 67, 0.18);
-            
-            /* Fill Colors */
-            --system-fill: rgba(120, 120, 128, 0.2);
-            --secondary-system-fill: rgba(120, 120, 128, 0.16);
-            --tertiary-system-fill: rgba(118, 118, 128, 0.12);
-            --quaternary-system-fill: rgba(116, 116, 128, 0.08);
-            
-            /* Separator Colors */
-            --separator: rgba(60, 60, 67, 0.36);
-            --opaque-separator: #C6C6C8;
-            
-            /* Elevation & Materials */
-            --material-regular: rgba(255, 255, 255, 0.7);
-            /*--material-thick: rgba(255, 255, 255, 0.9);*/
-            --material-thick: rgba(255, 255, 255, 0.7);
-            --material-thin: rgba(255, 255, 255, 0.327);
-            
-            /* Spacing Scale */
-            --spacing-xs: 4px;
-            --spacing-sm: 8px;
-            --spacing-md: 16px;
-            --spacing-lg: 24px;
-            --spacing-xl: 32px;
-            --spacing-xxl: 48px;
-            
-            /* Border Radius */
-            --radius-xs: 4px;
-            --radius-sm: 8px;
-            --radius-md: 12px;
-            --radius-lg: 16px;
-            --radius-xl: 20px;
-            --radius-2xl: 24px;
-            --radius-full: 50%;
-            
-            /* Elevation System */
-            --shadow-1: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
-            --shadow-2: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
-            --shadow-3: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
-            --shadow-4: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
-            
-            /* Animation Timing */
-            --spring-timing: cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            --ease-out-timing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            --duration-fast: 0.2s;
-            --duration-normal: 0.35s;
-            --duration-slow: 0.5s;
-        }
-        
-        /* Dark Mode */
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --ios-blue: #0A84FF;
-                --ios-green: #30D158;
-                --ios-orange: #FF9F0A;
-                --ios-red: #FF453A;
-                --ios-purple: #BF5AF2;
-                --ios-yellow: #FFD60A;
-                --ios-mint: #63E6E2;
-                --ios-pink: #FF375F;
-                
-                --system-background: #000000;
-                --secondary-system-background: #1C1C1E;
-                --tertiary-system-background: #2C2C2E;
-                
-                --system-grouped-background: #000000;
-                --secondary-system-grouped-background: #1C1C1E;
-                --tertiary-system-grouped-background: #2C2C2E;
-                
-                --label: #FFFFFF;
-                --secondary-label: rgba(235, 235, 245, 0.6);
-                --tertiary-label: rgba(235, 235, 245, 0.3);
-                --quaternary-label: rgba(235, 235, 245, 0.18);
-                
-                --system-fill: rgba(120, 120, 128, 0.36);
-                --secondary-system-fill: rgba(120, 120, 128, 0.32);
-                --tertiary-system-fill: rgba(118, 118, 128, 0.24);
-                --quaternary-system-fill: rgba(116, 116, 128, 0.18);
-                
-                --separator: rgba(84, 84, 88, 0.65);
-                --opaque-separator: #38383A;
-                
-                --material-regular: rgba(28, 28, 30, 0.7);
-                --material-thick: rgba(28, 28, 30, 0.9);
-                --material-thin: rgba(28, 28, 30, 0.5);
-            }
-        }
-        
-        /* Base Styles */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        html {
-            font-size: 17px; /* iOS body font size */
-            height: 100%;
-            -webkit-text-size-adjust: 100%;
-            text-size-adjust: 100%;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            scroll-behavior: smooth;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif;
-            background-color: var(--system-grouped-background);
-            color: var(--label);
-            line-height: 1.47058824; /* iOS line height ratio */
-            min-height: 100vh;
-            min-height: -webkit-fill-available;
-            -webkit-overflow-scrolling: touch;
-            -webkit-tap-highlight-color: transparent;
-            -webkit-user-select: none;
-            -webkit-touch-callout: none;
-            touch-action: pan-y;
-            font-feature-settings: "kern" 1;
-            text-rendering: optimizeLegibility;
-        }
-        
-        /* iOS Viewport Fix */
-        @supports (-webkit-touch-callout: none) {
-            body {
-                min-height: -webkit-fill-available;
-            }
-        }
-        
-        /* App Container */
-        .app-container {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            min-height: 100vh;
-            background-color: var(--system-grouped-background);
-            isolation: isolate;
-        }
-        
-        /* Status Bar & Safe Area */
-        .status-bar-spacer {
-            height: max(44px, var(--safe-area-top));
-            background: var(--system-background);
-            background: var(--material-thick);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(17px);
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 999;
-        }
-        
-        /* Navigation Header */
-        .nav-header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 10px;
-            height: 200px; /* Increased for new date tiles */
-            background: var(--material-thick);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(17px);
-            border-bottom: 0.33px solid var(--separator);
-            z-index: 998;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            /*padding: var(--spacing-lg) var(--spacing-lg) var(--spacing-md);*/
-            padding-left: max(var(--spacing-lg), var(--safe-area-left));
-            padding-right: max(var(--spacing-lg), var(--safe-area-right));
-            padding-bottom: max(var(--spacing-lg), var(--safe-area-bottom));
-            padding-top: var(--safe-area-top);
-            border-bottom-left-radius: var(--radius-2xl);
-            border-bottom-right-radius: var(--radius-2xl);
-            
-        }
-        
-        /* Category view - hide navbar when in category view */
-        .nav-header.category-view {
-            transform: translateY(-100%);
-            transition: transform var(--duration-normal) var(--ease-out-timing);
-        }
-        
-        .nav-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .nav-title {
-            font-size: 34px;
-            font-weight: 700;
-            line-height: 1.1;
-            letter-spacing: -0.02em;
-            color: var(--label);
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
-        }
-        
-        .nav-actions {
-            display: flex;
-            gap: var(--spacing-sm);
-        }
-        
-        .nav-button {
-            width: 36px;
-            height: 36px;
-            border-radius: var(--radius-full);
-            border: none;
-            background: var(--quaternary-system-fill);
-            color: var(--ios-blue);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all var(--duration-fast) var(--ease-out-timing);
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        .nav-button:active {
-            transform: scale(0.96);
-            background: var(--tertiary-system-fill);
-        }
-        
-        .nav-button svg {
-            width: 20px;
-            height: 20px;
-            stroke-width: 2.5;
-        }
-        
-        /* Date Selector - New Tile Design */
-        .date-selector {
-            margin-top: var(--spacing-md);
-        }
-        
-        .date-tiles {
-            display: flex;
-            gap: var(--spacing-md);
-        }
-        
-        .date-tile {
-            flex: 1;
-            background: var(--secondary-system-grouped-background);
-            border-radius: var(--radius-lg);
-            padding: var(--spacing-sm);
-            border: 0.33px solid var(--separator);
-            transition: all var(--duration-fast) var(--ease-out-timing);
-        }
-        
-        .date-tile:active {
-            transform: scale(0.98);
-            background: var(--tertiary-system-grouped-background);
-        }
-        
-        .date-label {
-            display: block;
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--secondary-label);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: var(--spacing-xs);
-        }
-        
-        .date-select {
-            width: 100%;
-            border: none;
-            background: transparent;
-            color: var(--label);
-            font-size: 17px;
-            font-weight: 600;
-            appearance: none;
-            -webkit-appearance: none;
-            cursor: pointer;
-            outline: none;
-        }
-        
-        .date-select:focus {
-            color: var(--ios-blue);
-        }
-        
-        /* Segmented control - remove old styles */
-        .segmented-control {
-            display: none;
-        }
-        
-        /* Main Content */
-        .main-content {
-            flex: 1;
-            padding-top: calc(160px + max(44px, var(--safe-area-top)) + var(--spacing-xs)); /* Updated for new header height */
-            padding-bottom: calc(98px + max(34px, var(--safe-area-bottom)));
-            padding-left: max(var(--spacing-lg), var(--safe-area-left));
-            padding-right: max(var(--spacing-lg), var(--safe-area-right));
-            position: relative;
-            transition: padding-top var(--duration-normal) var(--ease-out-timing);
-        }
-        
-        /* Category view - adjust padding when navbar is hidden */
-        .main-content.category-view {
-            padding-top: calc(max(44px, var(--safe-area-top)) + var(--spacing-md));
-        }
-        
-        /* Card System */
-        .card {
-            background: var(--secondary-system-grouped-background);
-            border-radius: var(--radius-lg);
-            border: 0.33px solid var(--separator);
-            overflow: hidden;
-            box-shadow: var(--shadow-1);
-        }
-        
-        .card-header {
-            padding: var(--spacing-lg) var(--spacing-lg) var(--spacing-sm);
-            border-bottom: 0.33px solid var(--separator);
-        }
-        
-        .card-title {
-            font-size: 22px;
-            font-weight: 600;
-            color: var(--label);
-            line-height: 1.27;
-            letter-spacing: -0.01em;
-        }
-        
-        .card-subtitle {
-            font-size: 15px;
-            color: var(--secondary-label);
-            margin-top: var(--spacing-xs);
-            line-height: 1.33;
-        }
-        
-        .card-content {
-            padding: var(--spacing-lg);
-        }
-        
-        /* Summary Grid */
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: var(--spacing-md);
-            margin-bottom: var(--spacing-xl);
-        }
-        
-        .summary-card {
-            background: var(--secondary-system-grouped-background);
-            border-radius: var(--radius-lg);
-            padding: var(--spacing-md);
-            border: 0.33px solid var(--separator);
-            cursor: pointer;
-            transition: all var(--duration-normal) var(--spring-timing);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .summary-card::before {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: var(--card-color, var(--ios-blue));
-            /*transform: scaleX(0);*/
-            transition: transform var(--duration-normal) var(--spring-timing);
-        }
-        
-        .summary-card:active {
-            transform: scale(0.98);
-            background: var(--tertiary-system-grouped-background);
-        }
-        
-        .summary-card:active::before {
-            transform: scaleX(1);
-        }
-        
-        .summary-card-icon {
-            font-size: 24px;
-            margin-bottom: var(--spacing-sm);
-            display: block;
-        }
-        
-        .summary-card-title {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--secondary-label);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: var(--spacing-xs);
-        }
-        
-        .summary-card-amount {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--label);
-            line-height: 1.2;
-            margin-bottom: var(--spacing-xs);
-            font-variant-numeric: tabular-nums;
-        }
-        
-        .summary-card-subtitle {
-            font-size: 11px;
-            color: var(--tertiary-label);
-            line-height: 1.3;
-        }
-        
-        /* Category Colors */
-        .summary-card.private { --card-color: var(--ios-green); }
-        .summary-card.mthub { --card-color: var(--ios-blue); }
-        .summary-card.fhu { --card-color: var(--ios-pink); }
-        
-        /* Chart Container */
-        .chart-container {
-            position: relative;
-            height: 280px;
-            margin: var(--spacing-xl) 0;
-        }
-        
-        #expenseChart {
-            width: 100% !important;
-            height: 100% !important;
-        }
-        
-        /* Stats Cards */
-        .stats-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: var(--spacing-md);
-            margin: var(--spacing-xl) 0;
-        }
-        
-        .stat-card {
-            background: var(--secondary-system-grouped-background);
-            border-radius: var(--radius-lg);
-            padding: var(--spacing-lg);
-            border: 0.33px solid var(--separator);
-            text-align: center;
-        }
-        
-        .stat-value {
-            font-size: 22px;
-            font-weight: 600;
-            color: var(--label);
-            line-height: 1.14;
-            margin-bottom: var(--spacing-xs);
-            font-variant-numeric: tabular-nums;
-        }
-        
-        .stat-label {
-            font-size: 11px;
-            color: var(--secondary-label);
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-        
-        /* Bottom Sheet for Transactions */
-        .bottom-sheet {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: var(--secondary-system-grouped-background);
-            border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
-            transform: translateY(100%);
-            will-change: transform;
-            -webkit-overflow-scrolling: touch;
-            contain: layout style paint;
-            transition: transform var(--duration-slow) var(--spring-timing);
-            z-index: 1001; /* Higher than tab bar */
-            /*max-height: calc(var(--viewport-height) - 120px);*/
-            max-height: 90vh;
-            overflow: hidden;
-            box-shadow: var(--shadow-4);
-            padding-bottom: calc(60px + max(34px, var(--safe-area-bottom))); 
-        }
-        
-        .bottom-sheet.open {
-            transform: translateY(0);
-        }
-        
-        .bottom-sheet-handle {
-            width: 36px;
-            height: 5px;
-            background: var(--quaternary-label);
-            border-radius: var(--radius-xl);
-            margin: var(--spacing-md) auto var(--spacing-lg);
-            cursor: pointer;
-        }
-        
-        .bottom-sheet-header {
-            padding: 0 var(--spacing-xl);
-            margin-bottom: var(--spacing-lg);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .bottom-sheet-title {
-            font-size: 22px;
-            font-weight: 600;
-            color: var(--label);
-        }
-        
-        .close-button {
-            width: 32px;
-            height: 32px;
-            border-radius: var(--radius-full);
-            border: none;
-            background: var(--quaternary-system-fill);
-            color: var(--secondary-label);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all var(--duration-fast) var(--ease-out-timing);
-        }
-        
-        .close-button:active {
-            transform: scale(0.96);
-            background: var(--tertiary-system-fill);
-        }
-        
-        .bottom-sheet-content {
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-            max-height: calc(80vh - 180px); /* Account for header and tab bar */
-            padding: 0 var(--spacing-xl);
-        }
-        
-        /* Backdrop for bottom sheet */
-        .sheet-backdrop {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.4);
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all var(--duration-normal) ease;
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-        }
-        
-        .sheet-backdrop.open {
-            opacity: 1;
-            visibility: visible;
-        }
-        
-        /* Transaction Items */
-        .transaction-item {
-            display: flex;
-            align-items: center;
-            padding: var(--spacing-lg) 0;
-            border-bottom: 0.33px solid var(--separator);
-        }
-        
-        .transaction-item:last-child {
-            border-bottom: none;
-        }
-        
-        .transaction-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: var(--radius-md);
-            background: var(--quaternary-system-fill);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: var(--spacing-md);
-            font-size: 18px;
-        }
-        
-        .transaction-details {
-            flex: 1;
-            min-width: 0;
-        }
-        
-        .transaction-title {
-            font-size: 17px;
-            font-weight: 500;
-            color: var(--label);
-            line-height: 1.29;
-            margin-bottom: 2px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 200px; /* Limit width for better truncation */
-        }
-        
-        .transaction-meta {
-            font-size: 15px;
-            color: var(--secondary-label);
-            line-height: 1.33;
-        }
-        
-        .transaction-amount {
-            font-size: 17px;
-            font-weight: 600;
-            color: var(--label);
-            text-align: right;
-            font-variant-numeric: tabular-nums;
-        }
-        
-        /* Tab Bar */
-        .tab-bar {
-            position: fixed;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: var(--material-thick);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(17px);
-            border-top: 0.33px solid var(--separator);
-            z-index: 1200;
-            padding-bottom: 0;
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            will-change: transform;
-            contain: layout style;
-                /* Force compositing layer */
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            
-            /* iOS PWA specific */
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-        }
-        
-        .tab-bar-content {
-            display: flex;
-            height: 83px;
-            align-items: center;
-            justify-content: space-around;
-            /*padding: var(--spacing-md);*/
-            padding-left: var(--spacing-md);
-            padding-right: var(--spacing-md);
-            padding-bottom: var(--spacing-xl);
-        }
-        
-        .tab-item {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: var(--spacing-sm);
-            border: none;
-            background: none;
-            color: var(--tertiary-label);
-            cursor: pointer;
-            transition: all var(--duration-fast) var(--ease-out-timing);
-            border-radius: var(--radius-md);
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        .tab-item.active {
-            color: var(--ios-blue);
-        }
-        
-        .tab-item:active {
-            transform: scale(0.95);
-            background: var(--quaternary-system-fill);
-        }
-        
-        .tab-icon {
-            width: 22px;
-            height: 22px;
-            margin-bottom: 2px;
-            stroke-width: 2;
-            transition: transform var(--duration-fast) var(--spring-timing);
-        }
-        
-        .tab-item.active .tab-icon {
-            transform: scale(1.1);
-        }
-        
-        .tab-label {
-            font-size: 10px;
-            font-weight: 500;
-            letter-spacing: 0.1px;
-            line-height: 1.2;
-        }
-        
-        /* Loading State */
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: var(--system-background);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            opacity: 1;
-            transition: opacity var(--duration-normal) ease;
-        }
-        
-        .loading-overlay.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-        
-        .loading-content {
-            text-align: center;
-        }
-        
-        .loading-logo {
-            font-size: 64px;
-            margin-bottom: var(--spacing-lg);
-            animation: pulse 2s infinite ease-in-out;
-        }
-        
-        .loading-spinner {
-            width: 32px;
-            height: 32px;
-            border: 3px solid var(--quaternary-system-fill);
-            border-top: 3px solid var(--ios-blue);
-            border-radius: var(--radius-full);
-            margin: 0 auto var(--spacing-md);
-            animation: spin 1s linear infinite;
-        }
-        
-        .loading-text {
-            font-size: 17px;
-            color: var(--secondary-label);
-            font-weight: 400;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.05); opacity: 0.8; }
-        }
-        
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: var(--spacing-xxl) var(--spacing-lg);
-        }
-        
-        .empty-icon {
-            font-size: 48px;
-            margin-bottom: var(--spacing-lg);
-            opacity: 0.6;
-        }
-        
-        .empty-title {
-            font-size: 22px;
-            font-weight: 600;
-            color: var(--label);
-            margin-bottom: var(--spacing-sm);
-        }
-        
-        .empty-subtitle {
-            font-size: 17px;
-            color: var(--secondary-label);
-            line-height: 1.4;
-        }
-        
-        /* Pull to Refresh */
-        .pull-to-refresh {
-            position: absolute;
-            top: -60px;
-            left: 50%;
-            transform: translateX(-50%);
-            opacity: 0;
-            transition: all var(--duration-normal) var(--spring-timing);
-        }
-        
-        .pull-to-refresh.active {
-            opacity: 1;
-            transform: translateX(-50%) translateY(20px);
-        }
-        
-        .refresh-indicator {
-            width: 40px;
-            height: 40px;
-            background: var(--material-thick);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-radius: var(--radius-full);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--ios-blue);
-            box-shadow: var(--shadow-2);
-        }
-        
-        /* Responsive Design */
-        @media (max-width: 390px) {
-            .summary-grid {
-                gap: var(--spacing-sm);
-            }
-            
-            .summary-card {
-                padding: var(--spacing-md);
-            }
-            
-            .summary-card-amount {
-                font-size: 18px;
-            }
-            
-            .nav-title {
-                font-size: 28px;
-            }
-        }
-        
-        @media (max-width: 375px) {
-            .main-content {
-                padding-left: var(--spacing-md);
-                padding-right: var(--spacing-md);
-            }
-            
-            .nav-header {
-                padding: 0 var(--spacing-md);
-            }
-        }
-        
-        /* Accessibility */
-        @media (prefers-reduced-motion: reduce) {
-            * {
-                animation-duration: 0.01ms !important;
-                transition-duration: 0.01ms !important;
-            }
-        }
-        
-        @media (prefers-contrast: high) {
-            .card, .summary-card, .stat-card {
-                border-width: 1px;
-            }
-        }
-        
-        /* Focus States */
-        .nav-button:focus-visible,
-        .summary-card:focus-visible,
-        .tab-item:focus-visible {
-            outline: 2px solid var(--ios-blue);
-            outline-offset: 2px;
-        }
-        
-        /* Utility Classes */
-        .hidden {
-            display: none !important;
-        }
-        
-        .sr-only {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip: rect(0, 0, 0, 0);
-            white-space: nowrap;
-            border: 0;
-        }
-    </style>
 </head>
 <body>
-    <!-- Status Bar Spacer -->
-
     <!-- Loading Screen -->
     <div id="loading" class="loading-overlay">
         <div class="loading-content">
@@ -991,7 +60,7 @@
                         <label class="date-label">Rok</label>
                         <select class="date-select" id="yearSelect" aria-label="Wybierz rok">
                             <option value="2025">2025</option>
-                            <option value="2026" selected>2026</option>
+                            <option value="2026">2026</option>
                             <option value="2027">2027</option>
                         </select>
                     </div>
@@ -1094,134 +163,93 @@
                         </div>
                     </div>
                 </section>
+
+                <!-- Yearly Chart Section -->
+                <section class="card" id="yearlyChartSection">
+                    <div class="card-header">
+                        <div>
+                            <h2 class="card-title">Wydatki w roku</h2>
+                            <p class="card-subtitle">Analiza trendów miesięcznych według kategorii</p>
+                        </div>
+                        
+                        <div class="yearly-chart-controls">
+                            <!-- Chart Type Switcher -->
+                            <div class="chart-type-switcher">
+                                <button class="chart-type-button active" 
+                                        data-type="line" 
+                                        id="chartTypeLineBtn"
+                                        aria-label="Wykres liniowy">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <polyline points="22,6 13,13 8.5,8.5 2,15"></polyline>
+                                        <polyline points="16,6 22,6 22,12"></polyline>
+                                    </svg>
+                                    Liniowy
+                                </button>
+                                <button class="chart-type-button" 
+                                        data-type="bar" 
+                                        id="chartTypeBarBtn"
+                                        aria-label="Wykres słupkowy">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                        <rect x="7" y="8" width="3" height="8"></rect>
+                                        <rect x="14" y="6" width="3" height="10"></rect>
+                                    </svg>
+                                    Słupkowy
+                                </button>
+                            </div>
+                            
+                            <!-- Load Button -->
+                            <button class="yearly-load-button" 
+                                    id="loadYearlyChartBtn"
+                                    aria-label="Załaduj wykres roczny">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                    <rect x="7" y="8" width="3" height="8"></rect>
+                                    <rect x="14" y="6" width="3" height="10"></rect>
+                                </svg>
+                                Załaduj wykres
+                            </button>
+                        </div>
+                    </div>
+                     
+                    <!-- Chart Container -->
+                    <div class="yearly-chart-container">
+                        <canvas id="yearlyExpenseChart" 
+                                role="img" 
+                                aria-label="Wykres roczny wydatków według kategorii">
+                        </canvas>
+                    </div>
+                </section>
+
+                <!-- Yearly Stats - Row 1 -->
+                <section class="stats-row yearly-stats-card" 
+                         style="display: none;" 
+                         aria-label="Podstawowe statystyki roczne">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalYearlyExpenses">0 zł</div>
+                        <div class="stat-label">Wydatki w roku</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="avgMonthlyExpenses">0 zł</div>
+                        <div class="stat-label">Średnia miesięczna</div>
+                    </div>
+                </section>
+
+                <!-- Yearly Stats - Row 2 -->
+                <section class="stats-row yearly-stats-card" 
+                         style="display: none;"
+                         aria-label="Miesięczne ekstrema">
+                    <div class="stat-card">
+                        <div class="stat-value" id="highestMonthExpenses">-</div>
+                        <div class="stat-label">Najwyższy miesiąc</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="lowestMonthExpenses">-</div>
+                        <div class="stat-label">Najniższy miesiąc</div>
+                    </div>
+                </section>
             </div>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<section class="card" id="yearlyChartSection">
-    <div class="card-header">
-        <div>
-            <h2 class="card-title">Wydatki w roku</h2>
-            <p class="card-subtitle">Analiza trendów miesięcznych według kategorii</p>
-        </div>
-        
-        <div class="yearly-chart-controls">
-            <!-- Przełącznik typu wykresu -->
-            <div class="chart-type-switcher">
-                <button class="chart-type-button active" 
-                        data-type="line" 
-                        onclick="switchYearlyChartType('line')"
-                        aria-label="Wykres liniowy">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <polyline points="22,6 13,13 8.5,8.5 2,15"></polyline>
-                        <polyline points="16,6 22,6 22,12"></polyline>
-                    </svg>
-                    Liniowy
-                </button>
-                <button class="chart-type-button" 
-                        data-type="bar" 
-                        onclick="switchYearlyChartType('bar')"
-                        aria-label="Wykres słupkowy">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                        <rect x="7" y="8" width="3" height="8"></rect>
-                        <rect x="14" y="6" width="3" height="10"></rect>
-                    </svg>
-                    Słupkowy
-                </button>
-            </div>
-            
-            <!-- Przycisk ładowania -->
-            <button class="yearly-load-button" 
-                    onclick="loadYearlyChart()"
-                    aria-label="Załaduj wykres roczny">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                    <rect x="7" y="8" width="3" height="8"></rect>
-                    <rect x="14" y="6" width="3" height="10"></rect>
-                </svg>
-                Załaduj wykres
-            </button>
-        </div>
-    </div>
-     
-    <!-- Kontener wykresu -->
-    <div class="yearly-chart-container">
-        <canvas id="yearlyExpenseChart" 
-                role="img" 
-                aria-label="Wykres roczny wydatków według kategorii">
-        </canvas>
-    </div>
-</section>
-
-<!-- Statystyki roczne - Rząd 1 -->
-<section class="stats-row yearly-stats-card" 
-         style="display: none;" 
-         aria-label="Podstawowe statystyki roczne">
-    <div class="stat-card">
-        <div class="stat-value" id="totalYearlyExpenses">0 zł</div>
-        <div class="stat-label">Wydatki w roku</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-value" id="avgMonthlyExpenses">0 zł</div>
-        <div class="stat-label">Średnia miesięczna</div>
-    </div>
-</section>
-
-<!-- Statystyki roczne - Rząd 2 -->
-<section class="stats-row yearly-stats-card" 
-         style="display: none;"
-         aria-label="Miesięczne ekstrema">
-    <div class="stat-card">
-        <div class="stat-value" id="highestMonthExpenses">-</div>
-        <div class="stat-label">Najwyższy miesiąc</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-value" id="lowestMonthExpenses">-</div>
-        <div class="stat-label">Najniższy miesiąc</div>
-    </div>
-</section>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            
             <!-- Category Views (Hidden by default) -->
             <div id="categoryViews" class="hidden">
                 <!-- Will be populated dynamically -->
@@ -1267,6 +295,14 @@
                     <span class="tab-label">Prywatne</span>
                 </button>
 
+                <button class="tab-item add-expense-btn" id="addExpenseTab" role="tab" aria-selected="false">
+                    <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    <span class="tab-label">Dodaj</span>
+                </button>
+
                 <button class="tab-item" id="mthubTab" data-category="MT HUB" role="tab" aria-selected="false">
                     <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                         <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
@@ -1276,1043 +312,119 @@
 
                 <button class="tab-item" id="fhuTab" data-category="FHU" role="tab" aria-selected="false">
                     <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-    <path d="M6 2L3 6v14c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2V6l-3-4H6zM3.8 6h16.4M16 10a4 4 0 1 1-8 0"/>
+                        <path d="M6 2L3 6v14c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2V6l-3-4H6zM3.8 6h16.4M16 10a4 4 0 1 1-8 0"/>
                     </svg>
                     <span class="tab-label">FHU</span>
                 </button>
             </div>
         </nav>
+
+        <!-- Add Expense Sheet -->
+        <div class="sheet-backdrop" id="addExpenseBackdrop"></div>
+        <div class="bottom-sheet" id="addExpenseSheet">
+            <div class="bottom-sheet-handle" id="addExpenseHandle"></div>
+            <div class="bottom-sheet-header">
+                <h2 class="bottom-sheet-title">Dodaj wydatek</h2>
+                <button class="close-button" id="closeAddExpense" aria-label="Zamknij">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="bottom-sheet-content">
+                <form id="addExpenseForm" class="expense-form">
+                    <!-- Category -->
+                    <div class="form-group">
+                        <label class="form-label">Kategoria</label>
+                        <div class="segmented-control">
+                            <button type="button" class="segment-button active" data-category="Prywatne">
+                                Prywatne
+                            </button>
+                            <button type="button" class="segment-button" data-category="Firmowe">
+                                Firmowe
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Subcategory (for Prywatne) -->
+                    <div class="form-group" id="subcategoryGroup">
+                        <label class="form-label" for="subcategory">Subkategoria</label>
+                        <input type="text" id="subcategory" class="form-input" placeholder="Wpisz subkategorię">
+                    </div>
+
+                    <!-- Company (for Firmowe) -->
+                    <div class="form-group hidden" id="companyGroup">
+                        <label class="form-label" for="company">Firma</label>
+                        <select id="company" class="form-select">
+                            <option value="MT HUB">MT HUB</option>
+                            <option value="FHU">FHU</option>
+                        </select>
+                    </div>
+
+                    <!-- Date -->
+                    <div class="form-group">
+                        <label class="form-label" for="expenseDate">Data</label>
+                        <input type="date" id="expenseDate" class="form-input" required>
+                    </div>
+
+                    <!-- Expense Type -->
+                    <div class="form-group">
+                        <label class="form-label">Rodzaj wydatku</label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="isPayment" class="checkbox-input">
+                                <span class="checkbox-text">Opłata</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="isOther" class="checkbox-input" checked>
+                                <span class="checkbox-text">Inne</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Payment Type (for Opłata) -->
+                    <div class="form-group hidden" id="paymentTypeGroup">
+                        <label class="form-label" for="paymentType">Typ opłaty</label>
+                        <select id="paymentType" class="form-select">
+                            <option value="ZUS">ZUS</option>
+                            <option value="Dochodowy">Dochodowy</option>
+                            <option value="VAT">VAT</option>
+                        </select>
+                    </div>
+
+                    <!-- Description (for Inne) -->
+                    <div class="form-group" id="descriptionGroup">
+                        <label class="form-label" for="description">Opis</label>
+                        <input type="text" id="description" class="form-input" placeholder="Opis wydatku">
+                    </div>
+
+                    <!-- Amount -->
+                    <div class="form-group">
+                        <label class="form-label" for="amount">Kwota (PLN)</label>
+                        <input type="number" id="amount" class="form-input" step="0.01" placeholder="0.00" required>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="submit-button">
+                        <span class="submit-text">Dodaj wydatek</span>
+                        <svg class="submit-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+        </div>
     </div>
 
-    <script>
-        // =================================
-        // iOS Native PWA JavaScript - 2025
-        // Modern, performant, accessible
-        // =================================
-
-        // Global Application State
-        class AppState {
-            constructor() {
-                this.currentData = null;
-                this.currentView = 'dashboard';
-                this.currentCategory = null;
-                this.chart = null;
-                this.isOnline = navigator.onLine;
-                this.isLoading = false;
-                this.touchStartY = 0;
-                this.pullDistance = 0;
-                this.isPulling = false;
-            }
-
-            setState(newState) {
-                Object.assign(this, newState);
-                this.notifyStateChange();
-            }
-
-            notifyStateChange() {
-                // Emit custom event for state changes
-                window.dispatchEvent(new CustomEvent('appStateChange', { 
-                    detail: { ...this } 
-                }));
-            }
-        }
-
-        const appState = new AppState();
-
-        // API Configuration
-        const API_CONFIG = {
-            baseUrl: 'https://jan204-20204.wykr.es/webhook/dashboard-wydatki',
-            timeout: 10000,
-            retryAttempts: 3,
-            retryDelay: 1000
-        };
-
-        // Category Configuration
-        const CATEGORIES = {
-            'Prywatne': { icon: '🏠', color: '#34C759' },
-            'MT HUB': { icon: '🔧', color: '#007AFF' },
-            'FHU': { icon: '⛽', color: '#FF2D92' }
-        };
-
-        // iOS Haptic Feedback Manager
-        class HapticManager {
-            static isSupported() {
-                return 'vibrate' in navigator;
-            }
-
-            static light() {
-                if (this.isSupported()) {
-                    navigator.vibrate(10);
-                }
-            }
-
-            static medium() {
-                if (this.isSupported()) {
-                    navigator.vibrate(20);
-                }
-            }
-
-            static heavy() {
-                if (this.isSupported()) {
-                    navigator.vibrate(30);
-                }
-            }
-
-            static success() {
-                if (this.isSupported()) {
-                    navigator.vibrate([10, 50, 10]);
-                }
-            }
-
-            static error() {
-                if (this.isSupported()) {
-                    navigator.vibrate([50, 30, 50, 30, 50]);
-                }
-            }
-
-            static selection() {
-                if (this.isSupported()) {
-                    navigator.vibrate(5);
-                }
-            }
-        }
-
-        // Utility Functions
-        function formatCurrency(amount) {
-            return new Intl.NumberFormat('pl-PL', {
-                style: 'currency',
-                currency: 'PLN',
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0
-            }).format(amount);
-        }
-
-        function formatDate(dateString) {
-            try {
-                const date = new Date(dateString);
-                return new Intl.DateTimeFormat('pl-PL', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric'
-                }).format(date);
-            } catch (error) {
-                console.warn('Date formatting error:', error);
-                return dateString;
-            }
-        }
-
-        function getMonthName(month) {
-            const months = [
-                'Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec',
-                'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'
-            ];
-            return months[parseInt(month) - 1] || months[0];
-        }
-
-        function debounce(func, wait) {
-            let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
-            };
-        }
-
-        function throttle(func, limit) {
-            let inThrottle;
-            return function() {
-                const args = arguments;
-                const context = this;
-                if (!inThrottle) {
-                    func.apply(context, args);
-                    inThrottle = true;
-                    setTimeout(() => inThrottle = false, limit);
-                }
-            }
-        }
-
-        // Loading State Management
-        function showLoading() {
-            const loading = document.getElementById('loading');
-            const appContainer = document.getElementById('appContainer');
-            
-            if (loading && appContainer) {
-                loading.classList.remove('hidden');
-                appContainer.style.display = 'none';
-                appState.setState({ isLoading: true });
-            }
-        }
-
-        function hideLoading() {
-            const loading = document.getElementById('loading');
-            const appContainer = document.getElementById('appContainer');
-            
-            if (loading && appContainer) {
-                loading.classList.add('hidden');
-                appContainer.style.display = 'flex';
-                appState.setState({ isLoading: false });
-            }
-        }
-
-        // Enhanced Error Handling
-        function showError(message, isRetryable = true) {
-            console.error('App Error:', message);
-            HapticManager.error();
-
-            // Create native iOS-style alert
-            const alertMessage = `Błąd: ${message}${isRetryable ? '\n\nSpróbuj ponownie.' : ''}`;
-            
-            if ('alert' in window) {
-                alert(alertMessage);
-            } else {
-                console.error(alertMessage);
-            }
-        }
-
-        // Enhanced Data Fetching with Retry Logic
-        async function fetchWithRetry(url, options = {}, attempt = 1) {
-            try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
-                
-                const response = await fetch(url, {
-                    ...options,
-                    signal: controller.signal,
-                    headers: {
-                        'Accept': 'application/json',
-                        'Cache-Control': 'no-cache',
-                        ...options.headers
-                    }
-                });
-                
-                clearTimeout(timeoutId);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                return response;
-            } catch (error) {
-                console.warn(`Fetch attempt ${attempt} failed:`, error.message);
-                
-                if (attempt < API_CONFIG.retryAttempts && error.name !== 'AbortError') {
-                    await new Promise(resolve => 
-                        setTimeout(resolve, API_CONFIG.retryDelay * attempt)
-                    );
-                    return fetchWithRetry(url, options, attempt + 1);
-                }
-                
-                throw error;
-            }
-        }
-
-        async function fetchExpenseData(year, month) {
-            const url = new URL(API_CONFIG.baseUrl);
-            if (year) url.searchParams.set('year', year);
-            if (month) url.searchParams.set('month', month);
-            
-            console.log(`🌐 Fetching data: ${url.toString()}`);
-            
-            try {
-                const response = await fetchWithRetry(url.toString(), {
-                    method: 'GET',
-                    mode: 'cors'
-                });
-                
-                const text = await response.text();
-                if (!text.trim()) {
-                    throw new Error('Empty response from server');
-                }
-                
-                const data = JSON.parse(text);
-                console.log('✅ Data received:', data);
-                return data;
-                
-            } catch (error) {
-                console.error('❌ API Error:', error);
-                showError(`Nie można pobrać danych: ${error.message}`);
-                return generateFallbackData(year, month);
-            }
-        }
-
-        function generateFallbackData(year, month) {
-            console.log(`📦 Generating fallback data for ${month}/${year}`);
-            return {
-                monthlyExpenses: 0,
-                currentMonth: `${getMonthName(month)} ${year}`,
-                expenseCategories: [
-                    { name: 'Prywatne', amount: 0, percentage: 0, transactionCount: 0, color: '#34C759' },
-                    { name: 'FHU', amount: 0, percentage: 0, transactionCount: 0, color: '#FF2D92' },
-                    { name: 'MT HUB', amount: 0, percentage: 0, transactionCount: 0, color: '#007AFF' }
-                ],
-                recentTransactions: []
-            };
-        }
-
-        // Enhanced UI Updates
-        function updateSummaryCards(data) {
-            console.log('🔄 Updating summary cards');
-            
-            const categoryTotals = {
-                'Prywatne': { amount: 0, transactions: 0 },
-                'MT HUB': { amount: 0, transactions: 0 },
-                'FHU': { amount: 0, transactions: 0 }
-            };
-            
-            // Calculate totals from expense categories
-            if (data.expenseCategories && Array.isArray(data.expenseCategories)) {
-                data.expenseCategories.forEach(category => {
-                    if (categoryTotals[category.name]) {
-                        categoryTotals[category.name].amount = category.amount || 0;
-                        categoryTotals[category.name].transactions = category.transactionCount || 0;
-                    }
-                });
-            }
-            
-            // Update cards with animation
-            const cards = document.querySelectorAll('.summary-card');
-            cards.forEach(card => {
-                const category = card.dataset.category;
-                const totals = categoryTotals[category];
-                
-                if (totals) {
-                    const amountEl = card.querySelector('.summary-card-amount');
-                    const subtitleEl = card.querySelector('.summary-card-subtitle');
-                    
-                    if (amountEl && subtitleEl) {
-                        // Animate number changes
-                        animateValue(amountEl, 0, totals.amount, 800, formatCurrency);
-                        subtitleEl.textContent = `${totals.transactions} transakcji`;
-                    }
-                }
-            });
-            
-            // Update total stats
-            const totalExpenses = Object.values(categoryTotals).reduce((sum, cat) => sum + cat.amount, 0);
-            const totalTransactions = Object.values(categoryTotals).reduce((sum, cat) => sum + cat.transactions, 0);
-            
-            const totalExpensesEl = document.getElementById('totalExpenses');
-            const transactionCountEl = document.getElementById('transactionCount');
-            
-            if (totalExpensesEl) {
-                animateValue(totalExpensesEl, 0, totalExpenses, 1000, formatCurrency);
-            }
-            if (transactionCountEl) {
-                animateValue(transactionCountEl, 0, totalTransactions, 800);
-            }
-            
-            // Update recent transactions (5 most recent)
-            updateRecentTransactions(data.recentTransactions || []);
-            
-            // Update chart
-            if (data.expenseCategories) {
-                updateChart(data.expenseCategories);
-            }
-        }
-
-        // Update recent transactions list (5 most recent)
-        function updateRecentTransactions(transactions) {
-            const container = document.getElementById('recentTransactionsList');
-            if (!container) return;
-            
-            // Sort by date and take 5 most recent
-            const recentTransactions = transactions
-                .sort((a, b) => new Date(b.date) - new Date(a.date))
-                .slice(0, 5);
-            
-            if (recentTransactions.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-icon">📝</div>
-                        <div class="empty-title">Brak transakcji</div>
-                        <div class="empty-subtitle">Nie znaleziono ostatnich transakcji</div>
-                    </div>
-                `;
-                return;
-            }
-            
-            container.innerHTML = recentTransactions.map(transaction => `
-                <div class="transaction-item">
-                    <div class="transaction-icon">${CATEGORIES[transaction.category]?.icon || '💰'}</div>
-                    <div class="transaction-details">
-                        <div class="transaction-title">${transaction.description || 'Bez opisu'}</div>
-                        <div class="transaction-meta">${formatDate(transaction.date)} • ${transaction.category}</div>
-                    </div>
-                    <div class="transaction-amount">${formatCurrency(transaction.amount || 0)}</div>
-                </div>
-            `).join('');
-        }
-
-        function animateValue(element, start, end, duration, formatter = null) {
-            const startTime = performance.now();
-            const difference = end - start;
-            
-            function update(currentTime) {
-                const elapsed = currentTime - startTime;
-                const progress = Math.min(elapsed / duration, 1);
-                
-                // Use easing function for smooth animation
-                const easeOutCubic = 1 - Math.pow(1 - progress, 3);
-                const current = start + (difference * easeOutCubic);
-                
-                if (formatter) {
-                    element.textContent = formatter(Math.floor(current));
-                } else {
-                    element.textContent = Math.floor(current);
-                }
-                
-                if (progress < 1) {
-                    requestAnimationFrame(update);
-                }
-            }
-            
-            requestAnimationFrame(update);
-        }
-
-        // Enhanced Chart Management
-        function updateChart(categories) {
-            console.log('📊 Updating chart');
-            
-            const ctx = document.getElementById('expenseChart');
-            if (!ctx) {
-                console.error('❌ Canvas element not found');
-                return;
-            }
-            
-            if (typeof Chart === 'undefined') {
-                console.error('❌ Chart.js not loaded');
-                showError('Wykres nie może zostać załadowany');
-                return;
-            }
-            
-            // Destroy previous chart
-            if (appState.chart) {
-                appState.chart.destroy();
-                appState.chart = null;
-            }
-            
-            // Prepare data
-            const validCategories = categories.filter(cat => cat && cat.amount > 0);
-            
-            if (validCategories.length === 0) {
-                validCategories.push({ name: 'Brak danych', amount: 1, color: '#E5E5EA' });
-            }
-            
-            try {
-                appState.chart = new Chart(ctx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: validCategories.map(cat => cat.name),
-                        datasets: [{
-                            data: validCategories.map(cat => cat.amount),
-                            backgroundColor: validCategories.map(cat => cat.color || '#007AFF'),
-                            borderWidth: 0,
-                            hoverBorderWidth: 0,
-                            hoverOffset: 4
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        interaction: {
-                            intersect: false
-                        },
-                        plugins: {
-                            legend: {
-                                display: false
-                            },
-                            tooltip: {
-                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                titleColor: '#fff',
-                                bodyColor: '#fff',
-                                cornerRadius: 8,
-                                padding: 12,
-                                displayColors: true,
-                                callbacks: {
-                                    label: function(context) {
-                                        try {
-                                            const label = context.label || '';
-                                            const value = formatCurrency(context.parsed);
-                                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                            const percentage = Math.round((context.parsed / total) * 100);
-                                            return `${label}: ${value} (${percentage}%)`;
-                                        } catch (error) {
-                                            return context.label || 'Brak danych';
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        cutout: '70%',
-                        animation: {
-                            animateScale: true,
-                            animateRotate: true,
-                            duration: 1000,
-                            easing: 'easeOutCubic'
-                        }
-                    }
-                });
-                
-                console.log('✅ Chart created successfully');
-                
-            } catch (error) {
-                console.error('❌ Chart creation failed:', error);
-                showError('Nie można utworzyć wykresu');
-            }
-        }
-
-        // Navigation Management
-        function showView(viewName, categoryName = null) {
-            console.log(`📱 Showing view: ${viewName}${categoryName ? ` (${categoryName})` : ''}`);
-            
-            HapticManager.selection();
-            
-            // Update app state
-            appState.setState({
-                currentView: viewName,
-                currentCategory: categoryName
-            });
-            
-            // Get elements
-            const navHeader = document.getElementById('navHeader');
-            const mainContent = document.getElementById('mainContent');
-            const dashboardView = document.getElementById('dashboardView');
-            const categoryViews = document.getElementById('categoryViews');
-            
-            // Update navigation title
-            const navTitle = document.getElementById('navTitle');
-            if (navTitle) {
-                if (viewName === 'dashboard') {
-                    navTitle.textContent = 'Dashboard';
-                } else if (categoryName) {
-                    navTitle.textContent = categoryName;
-                }
-            }
-            
-            // Handle navbar and content for different views
-            if (viewName === 'dashboard') {
-                // Show navbar and dashboard
-                if (navHeader) navHeader.classList.remove('category-view');
-                if (mainContent) mainContent.classList.remove('category-view');
-                if (dashboardView) dashboardView.classList.remove('hidden');
-                if (categoryViews) categoryViews.classList.add('hidden');
-                // Hide bottom sheet when returning to dashboard
-                hideBottomSheet();
-            } else {
-                // Hide navbar and show category view
-                if (navHeader) navHeader.classList.add('category-view');
-                if (mainContent) mainContent.classList.add('category-view');
-                if (dashboardView) dashboardView.classList.add('hidden');
-                if (categoryViews) categoryViews.classList.remove('hidden');
-                showCategoryTransactions(categoryName);
-            }
-            
-            // Update tab bar
-            updateTabBar(viewName, categoryName);
-        }
-
-        function updateTabBar(viewName, categoryName) {
-            const tabItems = document.querySelectorAll('.tab-item');
-            
-            tabItems.forEach(item => {
-                const view = item.dataset.view;
-                const category = item.dataset.category;
-                
-                const isActive = (view === viewName) || (category === categoryName);
-                
-                item.classList.toggle('active', isActive);
-                item.setAttribute('aria-selected', isActive.toString());
-            });
-        }
-
-        function showCategoryTransactions(categoryName) {
-            if (!appState.currentData || !appState.currentData.recentTransactions) {
-                return;
-            }
-            
-            const transactions = appState.currentData.recentTransactions
-                .filter(t => t.category === categoryName)
-                .sort((a, b) => new Date(b.date) - new Date(a.date));
-            
-            // Always show bottom sheet for category views - this is the key fix
-            requestAnimationFrame(() => {
-                showBottomSheet(categoryName, transactions);
-            });
-        }
-
-        function showBottomSheet(title, transactions) {
-            const sheet = document.getElementById('transactionSheet');
-            const backdrop = document.getElementById('sheetBackdrop');
-            const sheetTitle = document.getElementById('sheetTitle');
-            const sheetContent = document.getElementById('sheetContent');
-            
-            if (!sheet || !backdrop || !sheetTitle || !sheetContent) return;
-            
-            sheetTitle.textContent = `${title} - Transakcje`;
-            
-            if (transactions.length === 0) {
-                sheetContent.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-icon">📝</div>
-                        <div class="empty-title">Brak transakcji</div>
-                        <div class="empty-subtitle">Nie znaleziono transakcji dla kategorii ${title}</div>
-                    </div>
-                `;
-            } else {
-                sheetContent.innerHTML = transactions.map(transaction => `
-                    <div class="transaction-item">
-                        <div class="transaction-icon">${CATEGORIES[transaction.category]?.icon || '💰'}</div>
-                        <div class="transaction-details">
-                            <div class="transaction-title">${transaction.description || 'Bez opisu'}</div>
-                            <div class="transaction-meta">${formatDate(transaction.date)} • ${transaction.category}</div>
-                        </div>
-                        <div class="transaction-amount">${formatCurrency(transaction.amount || 0)}</div>
-                    </div>
-                `).join('');
-            }
-            
-            // Show backdrop first
-            backdrop.classList.add('open');
-            
-            // Show sheet with animation
-            requestAnimationFrame(() => {
-                sheet.classList.add('open');
-            });
-            
-            HapticManager.light();
-        }
-
-        function hideBottomSheet() {
-            const sheet = document.getElementById('transactionSheet');
-            const backdrop = document.getElementById('sheetBackdrop');
-            
-            if (sheet) {
-                sheet.classList.remove('open');
-            }
-            if (backdrop) {
-                backdrop.classList.remove('open');
-            }
-            
-            HapticManager.light();
-        }
-
-        // Pull to Refresh Implementation
-        function initializePullToRefresh() {
-            const mainContent = document.getElementById('mainContent');
-            const pullIndicator = document.getElementById('pullToRefresh');
-            
-            if (!mainContent || !pullIndicator) return;
-            
-            let startY = 0;
-            let currentY = 0;
-            let pullDistance = 0;
-            let isPulling = false;
-            let isRefreshing = false;
-            const PULL_THRESHOLD = 140; // Increased threshold
-            const MAX_PULL_DISTANCE = 180; // Maximum pull distance
-            
-            const handleTouchStart = (e) => {
-                if (mainContent.scrollTop === 0 && !isRefreshing) {
-                    startY = e.touches[0].clientY;
-                    isPulling = true;
-                }
-            };
-            
-            const handleTouchMove = throttle((e) => {
-                if (!isPulling || isRefreshing) return;
-                
-                currentY = e.touches[0].clientY;
-                pullDistance = Math.max(0, currentY - startY);
-                
-                // Only trigger haptic at threshold
-                if (pullDistance > PULL_THRESHOLD && !pullIndicator.classList.contains('active')) {
-                    pullIndicator.classList.add('active');
-                    HapticManager.light();
-                }
-                
-                // Add stronger resistance
-                const resistance = Math.min(pullDistance * 0.3, MAX_PULL_DISTANCE * 0.3);
-                mainContent.style.transform = `translateY(${resistance}px)`;
-            }, 16);
-            
-            const handleTouchEnd = async () => {
-                if (!isPulling) return;
-                
-                if (pullDistance > PULL_THRESHOLD && !isRefreshing) {
-                    isRefreshing = true;
-                    HapticManager.medium();
-                    
-                    // Keep indicator visible during refresh
-                    setTimeout(async () => {
-                        await refreshData();
-                        isRefreshing = false;
-                        pullIndicator.classList.remove('active');
-                    }, 800); // Minimum refresh time
-                } else {
-                    pullIndicator.classList.remove('active');
-                }
-                
-                // Reset with animation
-                isPulling = false;
-                pullDistance = 0;
-                mainContent.style.transform = '';
-                mainContent.style.transition = 'transform 0.3s ease-out';
-                
-                // Remove transition after animation
-                setTimeout(() => {
-                    mainContent.style.transition = '';
-                }, 300);
-            };
-            
-            mainContent.addEventListener('touchstart', handleTouchStart, { passive: true });
-            mainContent.addEventListener('touchmove', handleTouchMove, { passive: true });
-            mainContent.addEventListener('touchend', handleTouchEnd, { passive: true });
-        }
-
-        // Data Management
-        async function refreshData() {
-            console.log('🔄 Refreshing data...');
-            
-            const yearSelect = document.getElementById('yearSelect');
-            const monthSelect = document.getElementById('monthSelect');
-            
-            // Get current values or defaults
-            const year = yearSelect ? yearSelect.value : new Date().getFullYear();
-            const month = monthSelect ? monthSelect.value : String(new Date().getMonth() + 1).padStart(2, '0');
-            
-            try {
-                const data = await fetchExpenseData(year, month);
-                appState.setState({ currentData: data });
-                
-                updateSummaryCards(data);
-                HapticManager.success();
-                
-            } catch (error) {
-                console.error('❌ Failed to refresh data:', error);
-                HapticManager.error();
-            }
-        }
-
-        // Date change handler
-        function onDateChange() {
-            console.log('📅 Date changed');
-            HapticManager.selection();
-            refreshData();
-        }
-
-        // Event Listeners Setup
-        function setupEventListeners() {
-            console.log('🔧 Setting up event listeners');
-            
-            // Refresh button
-            const refreshBtn = document.getElementById('refreshBtn');
-            if (refreshBtn) {
-                refreshBtn.addEventListener('click', refreshData);
-            }
-            
-            // Date selectors
-            const yearSelect = document.getElementById('yearSelect');
-            const monthSelect = document.getElementById('monthSelect');
-            
-            if (yearSelect) {
-                yearSelect.addEventListener('change', onDateChange);
-            }
-            if (monthSelect) {
-                monthSelect.addEventListener('change', onDateChange);
-            }
-            
-            // Summary cards
-            const summaryCards = document.querySelectorAll('.summary-card');
-            summaryCards.forEach(card => {
-                const handleCardClick = () => {
-                    const category = card.dataset.category;
-                    if (category) {
-                        showView('category', category);
-                    }
-                };
-                
-                card.addEventListener('click', handleCardClick);
-                card.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        handleCardClick();
-                    }
-                });
-            });
-            
-            // Tab bar
-            const tabItems = document.querySelectorAll('.tab-item');
-            tabItems.forEach(item => {
-                item.addEventListener('click', (e) => {
-                    
-                    e.preventDefault();        // ✅ DODANE
-                    e.stopPropagation();  
-
-                    const view = item.dataset.view;
-                    const category = item.dataset.category;
-
-if (view === 'dashboard') {
-    showView('dashboard');
-    // Force hide bottom sheet when clicking dashboard
-    setTimeout(() => hideBottomSheet(), 100);
-} else if (category) {
-    showView('category', category);
-}
-                });
-            });
-            
-            // Bottom sheet controls
-            const sheetBackdrop = document.getElementById('sheetBackdrop');
-            const closeSheet = document.getElementById('closeSheet');
-            const sheetHandle = document.getElementById('sheetHandle');
-            
-            if (sheetBackdrop) {
-                sheetBackdrop.addEventListener('click', () => {
-                    hideBottomSheet();
-                    showView('dashboard');
-                });
-            }
-            
-            if (closeSheet) {
-                closeSheet.addEventListener('click', () => {
-                    hideBottomSheet();
-                    showView('dashboard');
-                });
-            }
-            
-            if (sheetHandle) {
-                sheetHandle.addEventListener('click', () => {
-                    hideBottomSheet();
-                    showView('dashboard');
-                });
-            }
-            
-            // Network status
-            window.addEventListener('online', () => {
-                appState.setState({ isOnline: true });
-                console.log('🌐 Back online');
-                refreshData();
-            });
-            
-            window.addEventListener('offline', () => {
-                appState.setState({ isOnline: false });
-                console.log('📱 Gone offline');
-            });
-            
-            // Keyboard navigation
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') {
-                    hideBottomSheet();
-                    showView('dashboard');
-                }
-            });
-        }
-
-        // App Initialization
-        async function initializeApp() {
-            console.log('🚀 Initializing iOS PWA...');
-            
-            // Check dependencies
-            if (typeof Chart === 'undefined') {
-                console.error('❌ Chart.js not available');
-                showError('Chart.js nie został załadowany', false);
-                return;
-            }
-            
-            // Set current month/year in selectors
-            const now = new Date();
-            const yearSelect = document.getElementById('yearSelect');
-            const monthSelect = document.getElementById('monthSelect');
-            
-            if (yearSelect) {
-                yearSelect.value = String(now.getFullYear());
-            }
-            if (monthSelect) {
-                monthSelect.value = String(now.getMonth() + 1).padStart(2, '0');
-            }
-            
-            // Setup event listeners
-            setupEventListeners();
-            
-            // Initialize pull to refresh
-            initializePullToRefresh();
-            
-            // Load initial data
-            await refreshData();
-            
-            // Hide loading screen
-            hideLoading();
-            
-            console.log('✅ App initialized successfully');
-        }
-
-        // Service Worker Registration
-        async function registerServiceWorker() {
-            if ('serviceWorker' in navigator) {
-                try {
-                    const registration = await navigator.serviceWorker.register('/service-worker.js');
-                    console.log('✅ SW registered:', registration);
-                    
-                    // Listen for updates
-                    registration.addEventListener('updatefound', () => {
-                        console.log('🔄 SW update found');
-                    });
-                    
-                } catch (error) {
-                    console.warn('❌ SW registration failed:', error);
-                }
-            }
-        }
-
-        // iOS-specific optimizations
-        function applyIOSOptimizations() {
-            // Prevent zoom on input focus
-            const viewport = document.querySelector('meta[name="viewport"]');
-            if (viewport) {
-                viewport.setAttribute('content', 
-                    'width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover'
-                );
-            }
-            
-            // Prevent bounce scrolling
-            document.body.style.overscrollBehavior = 'none';
-            
-            // Update status bar color based on theme
-            const updateStatusBarColor = () => {
-                const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                const themeColor = document.querySelector('meta[name="theme-color"]:not([media])');
-                
-                if (themeColor) {
-                    themeColor.setAttribute('content', isDark ? '#1C1C1E' : '#F2F2F7');
-                }
-            };
-            
-            updateStatusBarColor();
-            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateStatusBarColor);
-            
-            // Enhanced touch interactions
-            document.addEventListener('touchstart', () => {}, { passive: true });
-        }
-
-        // Performance monitoring
-        function initializePerformanceMonitoring() {
-            // Monitor performance
-            if ('performance' in window && 'observe' in window.PerformanceObserver.prototype) {
-                const observer = new PerformanceObserver((list) => {
-                    list.getEntries().forEach((entry) => {
-                        if (entry.entryType === 'navigation') {
-                            console.log(`📊 Page load time: ${entry.loadEventEnd - entry.loadEventStart}ms`);
-                        }
-                    });
-                });
-                
-                observer.observe({ entryTypes: ['navigation', 'paint'] });
-            }
-            
-            // Monitor memory usage (if available)
-            if ('memory' in performance) {
-                setInterval(() => {
-                    const memory = performance.memory;
-                    if (memory.usedJSHeapSize > memory.jsHeapSizeLimit * 0.8) {
-                        console.warn('⚠️ High memory usage detected');
-                    }
-                }, 30000);
-            }
-        }
-
-        // Error handling
-        function setupErrorHandling() {
-            window.addEventListener('error', (event) => {
-                console.error('❌ Global error:', event.error);
-                showError('Wystąpił nieoczekiwany błąd aplikacji');
-            });
-            
-            window.addEventListener('unhandledrejection', (event) => {
-                console.error('❌ Unhandled promise rejection:', event.reason);
-                showError('Wystąpił błąd podczas ładowania danych');
-                event.preventDefault();
-            });
-        }
-
-        // App lifecycle management
-        function setupAppLifecycle() {
-            // Handle app visibility changes
-            document.addEventListener('visibilitychange', () => {
-                if (!document.hidden && appState.isOnline) {
-                    // App became visible, refresh if needed
-                    const lastRefresh = localStorage.getItem('lastRefresh');
-                    const now = Date.now();
-                    
-                    if (!lastRefresh || (now - parseInt(lastRefresh)) > 300000) { // 5 minutes
-                        refreshData();
-                        localStorage.setItem('lastRefresh', now.toString());
-                    }
-                }
-            });
-            
-            // Handle page beforeunload
-            window.addEventListener('beforeunload', () => {
-                // Clean up chart
-                if (appState.chart) {
-                    appState.chart.destroy();
-                }
-            });
-        }
-
-        // Main initialization
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('📱 DOM loaded, starting app initialization...');
-            
-            // Apply iOS optimizations first
-            applyIOSOptimizations();
-            
-            // Setup error handling
-            setupErrorHandling();
-            
-            // Setup app lifecycle
-            setupAppLifecycle();
-            
-            // Initialize performance monitoring
-            initializePerformanceMonitoring();
-            
-            // Register service worker
-            registerServiceWorker();
-            
-            // Initialize app with delay to ensure all resources are loaded
-            setTimeout(initializeApp, 100);
-        });
-
-        // Global error handlers for debugging
-        if (typeof window !== 'undefined') {
-            window.appState = appState;
-            window.refreshData = refreshData;
-            window.showView = showView;
-            
-            // Debug helpers (remove in production)
-            window.debugApp = {
-                state: () => appState,
-                refreshData,
-                showView,
-                showError,
-                formatCurrency,
-                HapticManager
-            };
-        }
-
-        console.log('📱 iOS PWA script loaded successfully');
-
-  document.addEventListener('DOMContentLoaded', function() {
-            console.log('📊 Page loaded - auto-loading chart...');
-            // Małe opóźnienie dla lepszego UX
-            setTimeout(() => {
-                loadYearlyChart();
-            }, 500);
-        });
-
-    </script>
-    <script src="yearly-chart-2.0.js" defer></script>
+    <!-- JavaScript Files -->
+    <script src="/js/config.js?v1"></script>
+    <script src="/js/utils.js?v1"></script>
+    <script src="/js/api.js?v1"></script>
+    <script src="/js/haptic.js?v1"></script>
+    <script src="/js/yearly-chart.js?v1"></script>
+    <script src="/js/expense-form.js?v1"></script>
+    <script src="/js/dashboard.js?v1"></script>
+    <script src="/js/app.js?v1"></script>
 </body>
 </html>

@@ -1,0 +1,237 @@
+/* =================================
+   DASHBOARD.CSS - Style dla widoku dashboardu
+   ================================= */
+
+/* --- Nagłówek i Nawigacja --- */
+.nav-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 var(--spacing-lg);
+    padding-top: calc(var(--safe-area-top) + var(--spacing-sm));
+    padding-bottom: var(--spacing-sm);
+    background: var(--primary-system-background);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 0.33px solid var(--separator);
+}
+
+.nav-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--label);
+    margin: 0;
+    line-height: 1.2;
+}
+
+.nav-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.icon-button {
+    background: var(--secondary-system-fill);
+    border: none;
+    border-radius: var(--radius-full);
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--secondary-label);
+    cursor: pointer;
+    transition: background var(--duration-fast) ease-in-out;
+}
+
+.icon-button:active {
+    background: var(--tertiary-system-fill);
+}
+
+/* --- Sekcja podsumowania --- */
+.summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-lg);
+    margin-top: var(--spacing-lg);
+    padding-bottom: var(--spacing-xl);
+    border-bottom: 0.33px solid var(--separator);
+}
+
+.summary-card {
+    background: var(--secondary-system-background);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    box-shadow: var(--shadow-1);
+    transition: transform var(--duration-fast) var(--ease-out-timing);
+}
+
+.summary-card:active {
+    transform: scale(0.98);
+}
+
+.summary-card-title {
+    font-size: var(--font-footnote);
+    font-weight: 600;
+    color: var(--secondary-label);
+    margin: 0;
+}
+
+.summary-card-amount {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--label);
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* --- Sekcja wykresów i transakcji --- */
+.main-content {
+    padding: var(--spacing-lg);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-top: var(--spacing-xl);
+    margin-bottom: var(--spacing-md);
+}
+
+.section-title {
+    font-size: var(--font-title-2);
+    font-weight: 700;
+    color: var(--label);
+    margin: 0;
+}
+
+/* --- Lista transakcji --- */
+.transaction-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: var(--spacing-md);
+    border-bottom: 0.33px solid var(--separator);
+}
+
+.transaction-list-header-title {
+    font-size: var(--font-subheadline);
+    font-weight: 600;
+    color: var(--secondary-label);
+}
+
+.transaction-list {
+    margin-top: var(--spacing-md);
+    list-style: none;
+    padding: 0;
+}
+
+.transaction-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-md) 0;
+    border-bottom: 0.33px solid var(--quaternary-system-fill);
+}
+
+.transaction-item:last-child {
+    border-bottom: none;
+}
+
+.transaction-category {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.transaction-category-icon {
+    font-size: 20px;
+}
+
+.transaction-details {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    margin-left: var(--spacing-sm);
+}
+
+.transaction-description {
+    font-size: var(--font-body);
+    font-weight: 500;
+    color: var(--label);
+    margin: 0;
+    line-height: 1.2;
+}
+
+.transaction-date {
+    font-size: var(--font-footnote);
+    color: var(--secondary-label);
+    margin: 0;
+}
+
+.transaction-amount {
+    font-size: var(--font-body);
+    font-weight: 600;
+    color: var(--label);
+    margin: 0;
+}
+
+.transaction-amount.negative {
+    color: var(--ios-red);
+}
+
+/* --- Styl przycisku głównego --- */
+.add-expense-button {
+    background: var(--accent-color);
+    color: white;
+    font-size: 17px;
+    font-weight: 600;
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 16px;
+    width: 100%;
+    cursor: pointer;
+    box-shadow: var(--shadow-1);
+    transition: transform var(--duration-fast) var(--ease-out-timing),
+                background-color var(--duration-fast) var(--ease-out-timing);
+    margin-top: var(--spacing-xl);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+}
+
+.add-expense-button:active {
+    transform: scale(0.98);
+    background-color: var(--ios-green-dark);
+}
+
+/* --- Responsywność dla małych ekranów --- */
+@media (max-width: 375px) {
+    .summary-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* --- Tryb ciemny --- */
+@media (prefers-color-scheme: dark) {
+    .nav-header {
+        border-bottom-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .summary-card {
+        box-shadow: var(--shadow-dark-1);
+    }
+    
+    .transaction-item {
+        border-bottom-color: rgba(255, 255, 255, 0.05);
+    }
+}

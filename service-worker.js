@@ -1,29 +1,39 @@
 // =================================
 // SERVICE WORKER dla iOS PWA - FIXED
-// Zoptymalizowany dla Safari/iPhone
+// Version: 1.0.3
 // =================================
 
-const CACHE_NAME = 'dashboard-wydatki-v1.0.2';
-const CACHE_VERSION = '1.0.2';
+const CACHE_NAME = 'dashboard-wydatki-v1.0.3';
+const CACHE_VERSION = '1.0.3';
 
-// FIXED: Tylko rzeczywiście istniejące pliki
+// Files to cache - FIXED NAMES
 const urlsToCache = [
+    '/',
     '/dashboard.html',
-    '/dashboard-styles-pwa.css',
-    '/dashboard-script-4.js',
-    '/yealrly-chart.2.0.js',
-    '/yealrly-chart-styles.css',
     '/manifest.json',
-    '/icon-180.png',
-    // REMOVED: Usunięto referencje do nieistniejących plików ikon
-    'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js' // FIXED: Zsynchronizowano z HTML
+    // CSS Files
+    '/css/main.css',
+    //'/css/dashboard.css',
+    '/css/yearly-chart.css',
+    // JavaScript Files
+    '/js/config.js',
+    '/js/utils.js',
+    '/js/api.js',
+    '/js/haptic.js',
+    '/js/yearly-chart.js',
+    '/js/expense-form.js',
+    '/js/dashboard.js',
+    '/js/app.js',
+    // External Dependencies
+    'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js'
 ];
 
 // API endpoints to bypass cache
 const API_ENDPOINTS = [
     'jan204-20204.wykr.es',
-    'n8n.wykr.es',
-    'webhook'
+    'webhook',
+    'dashboard-wydatki',
+    'dashboard-add-expense'
 ];
 
 // =================================
@@ -37,12 +47,11 @@ self.addEventListener('install', (event) => {
             .then((cache) => {
                 console.log('✅ Cache opened:', CACHE_NAME);
                 
-                // IMPROVED: Better error handling for each resource
+                // Cache each resource with error handling
                 return Promise.allSettled(
                     urlsToCache.map(url => {
                         return cache.add(url).catch(error => {
                             console.warn(`⚠️ Failed to cache ${url}:`, error.message);
-                            // Don't fail the entire installation for one resource
                             return Promise.resolve();
                         });
                     })
@@ -96,32 +105,29 @@ self.addEventListener('activate', (event) => {
 });
 
 // =================================
-// FETCH EVENT - FIXED
+// FETCH EVENT
 // =================================
 self.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url);
     
     // Skip non-GET requests
     if (event.request.method !== 'GET') {
-        console.log('⏭️ Skipping non-GET request:', event.request.method, url.pathname);
         return;
     }
     
-    // Skip Chrome extension requests
+    // Skip browser extensions
     if (url.protocol === 'chrome-extension:' || url.protocol === 'moz-extension:') {
         return;
     }
     
-    // FIXED: Bypass API calls - COMPLETE BLOCK with proper return
+    // Handle API calls - bypass cache
     const isApiCall = API_ENDPOINTS.some(endpoint => event.request.url.includes(endpoint));
     if (isApiCall) {
-        console.log('🌐 Bypassing cache for API call:', event.request.url);
-        
+        console.log('🌐 Bypassing cache for API call:', url.pathname);
         event.respondWith(
-            Promise.race([
-                fetch(event.request).catch(error => {
+            fetch(event.request)
+                .catch(error => {
                     console.error('❌ API call failed:', error);
-                    // Return meaningful error response
                     return new Response(
                         JSON.stringify({ 
                             error: 'Network unavailable',
@@ -133,27 +139,9 @@ self.addEventListener('fetch', (event) => {
                             headers: { 'Content-Type': 'application/json' }
                         }
                     );
-                }),
-                // Timeout after 10 seconds
-                new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('API timeout')), 10000)
-                )
-            ]).catch(error => {
-                console.error('❌ API request timed out or failed:', error);
-                return new Response(
-                    JSON.stringify({ 
-                        error: 'Request timeout',
-                        message: 'Żądanie przekroczyło limit czasu',
-                        timestamp: new Date().toISOString()
-                    }),
-                    {
-                        status: 408,
-                        headers: { 'Content-Type': 'application/json' }
-                    }
-                );
-            })
+                })
         );
-        return; // FIXED: Added proper return
+        return;
     }
     
     // Cache-first strategy for app resources
@@ -163,7 +151,7 @@ self.addEventListener('fetch', (event) => {
                 if (cachedResponse) {
                     console.log('📦 Serving from cache:', url.pathname);
                     
-                    // IMPROVED: Background update for critical resources
+                    // Update cache in background for critical resources
                     if (shouldUpdateInBackground(url.pathname)) {
                         updateCacheInBackground(event.request);
                     }
@@ -177,20 +165,22 @@ self.addEventListener('fetch', (event) => {
             })
             .catch((error) => {
                 console.error('❌ Fetch failed for:', url.pathname, error);
-                
-                // IMPROVED: Better offline fallbacks
                 return getOfflineFallback(event.request);
             })
     );
 });
 
-// HELPER: Check if resource should be updated in background
+// =================================
+// HELPER FUNCTIONS
+// =================================
+
+// Check if resource should be updated in background
 function shouldUpdateInBackground(pathname) {
     const criticalResources = ['.js', '.css', '.html'];
     return criticalResources.some(ext => pathname.endsWith(ext));
 }
 
-// HELPER: Update cache in background
+// Update cache in background
 function updateCacheInBackground(request) {
     fetch(request)
         .then(response => {
@@ -203,7 +193,7 @@ function updateCacheInBackground(request) {
         .catch(() => {}); // Silent fail for background updates
 }
 
-// HELPER: Fetch and cache response
+// Fetch and cache response
 function fetchAndCache(request) {
     return fetch(request)
         .then((response) => {
@@ -226,7 +216,7 @@ function fetchAndCache(request) {
         });
 }
 
-// HELPER: Get offline fallback
+// Get offline fallback
 function getOfflineFallback(request) {
     if (request.destination === 'document') {
         return caches.match('/dashboard.html')
@@ -236,7 +226,7 @@ function getOfflineFallback(request) {
                     return fallback;
                 }
                 
-                // IMPROVED: Better offline page
+                // Return offline page
                 return new Response(
                     generateOfflinePage(),
                     { 
@@ -251,7 +241,7 @@ function getOfflineFallback(request) {
     return new Response('', { status: 404 });
 }
 
-// HELPER: Generate offline page HTML
+// Generate offline page HTML
 function generateOfflinePage() {
     return `<!DOCTYPE html>
     <html lang="pl">
@@ -260,6 +250,7 @@ function generateOfflinePage() {
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
             body { 
                 font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
                 text-align: center; 
@@ -272,71 +263,67 @@ function generateOfflinePage() {
                 justify-content: center;
                 align-items: center;
             }
-            .offline { 
-                color: #666; 
+            .offline-container { 
                 max-width: 400px;
+                padding: 40px 20px;
+                background: white;
+                border-radius: 20px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            }
+            .offline-icon {
+                font-size: 64px;
+                margin-bottom: 24px;
+            }
+            h1 {
+                color: #000;
+                margin-bottom: 16px;
+                font-size: 28px;
+            }
+            .offline-message {
+                color: #666;
+                font-size: 17px;
+                line-height: 1.5;
+                margin-bottom: 32px;
             }
             .retry-btn { 
                 background: #007AFF; 
                 color: white; 
                 border: none; 
-                padding: 12px 24px; 
-                border-radius: 8px; 
-                margin-top: 20px;
+                padding: 14px 32px; 
+                border-radius: 12px; 
                 cursor: pointer; 
-                font-size: 16px;
+                font-size: 17px;
                 font-weight: 600;
+                transition: all 0.3s ease;
             }
-            .offline-icon {
-                font-size: 48px;
-                margin-bottom: 20px;
-            }
-            h1 {
-                color: #000;
-                margin-bottom: 10px;
+            .retry-btn:hover {
+                background: #0051D0;
+                transform: scale(1.05);
             }
             @media (prefers-color-scheme: dark) {
-                body { background: #000; color: #fff; }
+                body { background: #000; }
+                .offline-container { 
+                    background: #1C1C1E;
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+                }
                 h1 { color: #fff; }
-                .offline { color: #999; }
+                .offline-message { color: #999; }
             }
         </style>
     </head>
     <body>
-        <div class="offline-icon">📱</div>
-        <h1>Dashboard Wydatków</h1>
-        <div class="offline">
-            <p><strong>Brak połączenia internetowego</strong></p>
-            <p>Sprawdź połączenie Wi-Fi lub mobilne i spróbuj ponownie</p>
+        <div class="offline-container">
+            <div class="offline-icon">📱</div>
+            <h1>Dashboard Wydatków</h1>
+            <div class="offline-message">
+                <strong>Brak połączenia internetowego</strong><br><br>
+                Sprawdź połączenie Wi-Fi lub mobilne i spróbuj ponownie
+            </div>
+            <button class="retry-btn" onclick="location.reload()">Spróbuj ponownie</button>
         </div>
-        <button class="retry-btn" onclick="location.reload()">Spróbuj ponownie</button>
     </body>
     </html>`;
 }
-
-// =================================
-// BACKGROUND SYNC
-// =================================
-self.addEventListener('sync', (event) => {
-    console.log('🔄 Background sync triggered:', event.tag);
-    
-    if (event.tag === 'background-sync') {
-        event.waitUntil(
-            Promise.resolve().then(() => {
-                console.log('✅ Background sync completed');
-                // Notify clients that sync completed
-                self.clients.matchAll().then(clients => {
-                    clients.forEach(client => {
-                        client.postMessage({
-                            type: 'SYNC_COMPLETE',
-                            timestamp: new Date().toISOString()
-                        });
-                    });
-                });
-            })
-        );
-    }
-});
 
 // =================================
 // MESSAGE HANDLING
@@ -373,20 +360,6 @@ self.addEventListener('message', (event) => {
             })
         );
     }
-    
-    if (event.data && event.data.type === 'GET_CACHE_STATUS') {
-        event.waitUntil(
-            caches.open(CACHE_NAME).then(cache => {
-                return cache.keys();
-            }).then(keys => {
-                event.ports[0].postMessage({
-                    cacheSize: keys.length,
-                    cachedUrls: keys.map(req => req.url),
-                    version: CACHE_VERSION
-                });
-            })
-        );
-    }
 });
 
 // =================================
@@ -394,139 +367,11 @@ self.addEventListener('message', (event) => {
 // =================================
 self.addEventListener('error', (event) => {
     console.error('❌ Service Worker error:', event.error);
-    
-    // Notify clients about error
-    self.clients.matchAll().then(clients => {
-        clients.forEach(client => {
-            client.postMessage({
-                type: 'SW_ERROR',
-                error: event.error.message,
-                timestamp: new Date().toISOString()
-            });
-        });
-    });
 });
 
 self.addEventListener('unhandledrejection', (event) => {
     console.error('❌ Unhandled promise rejection in SW:', event.reason);
-    
-    // Prevent default to avoid console spam
     event.preventDefault();
-    
-    // Notify clients
-    self.clients.matchAll().then(clients => {
-        clients.forEach(client => {
-            client.postMessage({
-                type: 'SW_PROMISE_REJECTION',
-                reason: event.reason,
-                timestamp: new Date().toISOString()
-            });
-        });
-    });
 });
 
-// =================================
-// iOS SPECIFIC OPTIMIZATIONS
-// =================================
-
-// Handle iOS-specific PWA navigation issues
-self.addEventListener('fetch', (event) => {
-    // Fix for iOS standalone mode navigation
-    if (event.request.mode === 'navigate' && 
-        event.request.destination === 'document') {
-        
-        const url = new URL(event.request.url);
-        
-        // Redirect to dashboard.html for any navigation request
-        if (url.pathname === '/' || url.pathname === '/index.html') {
-            event.respondWith(
-                caches.match('/dashboard.html').then(response => {
-                    return response || fetch('/dashboard.html').catch(() => {
-                        return new Response(generateOfflinePage(), {
-                            headers: { 'Content-Type': 'text/html' }
-                        });
-                    });
-                })
-            );
-        }
-    }
-});
-
-// Prevent iOS from sleeping the service worker
-let keepAliveInterval;
-
-function startKeepAlive() {
-    if (keepAliveInterval) return;
-    
-    keepAliveInterval = setInterval(() => {
-        console.log('🔄 SW keepalive:', new Date().toISOString());
-        
-        // Ping all clients to keep connections alive
-        self.clients.matchAll().then(clients => {
-            if (clients.length === 0) {
-                // No clients, can stop keepalive
-                stopKeepAlive();
-            }
-        });
-    }, 30000); // 30 seconds
-}
-
-function stopKeepAlive() {
-    if (keepAliveInterval) {
-        clearInterval(keepAliveInterval);
-        keepAliveInterval = null;
-        console.log('⏹️ SW keepalive stopped');
-    }
-}
-
-// Start keepalive when SW becomes active
-self.addEventListener('activate', startKeepAlive);
-
-// Monitor client connections
-self.addEventListener('message', (event) => {
-    if (event.data && event.data.type === 'CLIENT_CONNECTED') {
-        startKeepAlive();
-    }
-});
-
-// =================================
-// PERFORMANCE MONITORING
-// =================================
-let performanceData = {
-    cacheHits: 0,
-    cacheMisses: 0,
-    networkRequests: 0,
-    errors: 0
-};
-
-function updatePerformanceMetrics(type) {
-    performanceData[type] = (performanceData[type] || 0) + 1;
-    
-    // Send metrics to clients every 100 requests
-    const totalRequests = performanceData.cacheHits + performanceData.cacheMisses + performanceData.networkRequests;
-    if (totalRequests % 100 === 0) {
-        self.clients.matchAll().then(clients => {
-            clients.forEach(client => {
-                client.postMessage({
-                    type: 'PERFORMANCE_METRICS',
-                    data: performanceData,
-                    timestamp: new Date().toISOString()
-                });
-            });
-        });
-    }
-}
-
-// Update fetch event to include performance tracking
-const originalFetchHandler = self.onfetch;
-self.addEventListener('fetch', (event) => {
-    // Track performance
-    const url = new URL(event.request.url);
-    if (!API_ENDPOINTS.some(endpoint => url.href.includes(endpoint))) {
-        updatePerformanceMetrics('networkRequests');
-    }
-});
-
-console.log('🚀 Service Worker script loaded successfully', CACHE_VERSION);
-console.log('📊 Performance tracking enabled');
-console.log('🔧 iOS optimizations active');
+console.log('🚀 Service Worker loaded successfully', CACHE_VERSION);
