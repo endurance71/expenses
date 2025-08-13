@@ -1,6 +1,6 @@
 // =================================
-// EXPENSE-FORM.JS - Expense Form Manager
-// Version: 1.0.4 - FIXED
+// EXPENSE-FORM.JS - Expense Form Manager (FIXED)
+// Version: 1.0.4
 // =================================
 
 window.ExpenseFormManager = {
@@ -9,27 +9,6 @@ window.ExpenseFormManager = {
         category: 'Prywatne',
         isPayment: false,
         isOther: true
-    },
-    
-    // Payment types configuration
-    paymentTypes: {
-        'Prywatne': [
-            'Mieszkanie',
-            'Prąd', 
-            'Internet',
-            'Telefon',
-            'Ubezpieczenie',
-            'Subskrypcje'
-        ],
-        'Firmowe': [
-            'ZUS',
-            'PIT',
-            'VAT',
-            'Księgowość',
-            'Leasing',
-            'Telefon',
-            'Biuro'
-        ]
     },
     
     // Initialize form
@@ -50,7 +29,6 @@ window.ExpenseFormManager = {
                 btn.classList.add('active');
                 this.formState.category = btn.dataset.category;
                 this.updateFormUI();
-                this.updatePaymentTypes();
             });
         });
         
@@ -67,7 +45,6 @@ window.ExpenseFormManager = {
                     this.formState.isOther = false;
                 }
                 this.updateFormUI();
-                this.updatePaymentTypes();
             });
         }
         
@@ -105,27 +82,6 @@ window.ExpenseFormManager = {
         }
     },
     
-    // Update payment types based on category
-    updatePaymentTypes() {
-        const paymentTypeSelect = document.getElementById('paymentType');
-        if (!paymentTypeSelect) return;
-        
-        // Clear existing options
-        paymentTypeSelect.innerHTML = '';
-        
-        // Get appropriate payment types
-        const category = this.formState.category === 'Firmowe' ? 'Firmowe' : 'Prywatne';
-        const types = this.paymentTypes[category];
-        
-        // Add options
-        types.forEach(type => {
-            const option = document.createElement('option');
-            option.value = type;
-            option.textContent = type;
-            paymentTypeSelect.appendChild(option);
-        });
-    },
-    
     // Show form
     show() {
         Utils.debugLog('💰 Opening add expense sheet');
@@ -136,22 +92,22 @@ window.ExpenseFormManager = {
         
         if (!sheet || !backdrop) return;
         
+        // Close any open category sheets first
+        if (window.DashboardManager) {
+            window.DashboardManager.hideBottomSheet();
+            window.DashboardManager.activeSheet = 'expense';
+        }
+        
+        // Lock body scroll
+        if (window.DashboardManager) {
+            window.DashboardManager.lockBodyScroll();
+        }
+        
         // Reset form
         this.resetForm();
         
-        // Prevent body scroll when sheet is open
-        document.body.style.overflow = 'hidden';
-        //document.body.style.position = 'fixed';
-        document.body.style.width = '100%';
-
-        //close category view
-        categoryViews.classList.add('hidden');
         // Show backdrop and sheet
         backdrop.classList.add('open');
-        backdrop.style.background = 'rgba(0, 0, 0, 0.4)';
-        backdrop.style.backdropFilter = 'blur(10px)';
-        backdrop.style.webkitBackdropFilter = 'blur(10px)';
-        
         requestAnimationFrame(() => {
             sheet.classList.add('open');
         });
@@ -161,6 +117,15 @@ window.ExpenseFormManager = {
         if (addBtn) {
             addBtn.classList.add('active');
         }
+        
+        // Update all tab items
+        const tabItems = document.querySelectorAll('.tab-item');
+        tabItems.forEach(item => {
+            if (item.id !== 'addExpenseTab') {
+                item.classList.remove('active');
+                item.setAttribute('aria-selected', 'false');
+            }
+        });
     },
     
     // Hide form
@@ -172,14 +137,30 @@ window.ExpenseFormManager = {
         const backdrop = document.getElementById('addExpenseBackdrop');
         const addBtn = document.getElementById('addExpenseTab');
         
-        // Restore body scroll
-        document.body.style.overflow = '';
-        document.body.style.position = '';
-        document.body.style.width = '';
-        
         if (sheet) sheet.classList.remove('open');
         if (backdrop) backdrop.classList.remove('open');
         if (addBtn) addBtn.classList.remove('active');
+        
+        // Unlock body scroll
+        if (window.DashboardManager) {
+            window.DashboardManager.unlockBodyScroll();
+            window.DashboardManager.activeSheet = null;
+        }
+        
+        // Return to dashboard if no other sheet is active
+        if (window.DashboardManager && !window.DashboardManager.activeSheet) {
+            window.DashboardManager.updateTabBar('dashboard');
+        }
+    },
+    
+    // Toggle form (for add button click when already open)
+    toggle() {
+        const sheet = document.getElementById('addExpenseSheet');
+        if (sheet && sheet.classList.contains('open')) {
+            this.hide();
+        } else {
+            this.show();
+        }
     },
     
     // Reset form
@@ -201,7 +182,6 @@ window.ExpenseFormManager = {
         
         // Update UI
         this.updateFormUI();
-        this.updatePaymentTypes();
     },
     
     // Update form UI based on selections

@@ -1,6 +1,6 @@
 // =================================
 // APP.JS - Główna aplikacja
-// Version: 1.0.3
+// Version: 1.0.4 - FIXED
 // =================================
 
 // Global application namespace
@@ -132,7 +132,7 @@ window.WydatkiApp = {
             });
         });
         
-        // Tab bar
+        // Tab bar - FIXED
         const tabItems = document.querySelectorAll('.tab-item');
         tabItems.forEach(item => {
             item.addEventListener('click', (e) => {
@@ -141,10 +141,24 @@ window.WydatkiApp = {
                 
                 // Handle add expense button
                 if (item.id === 'addExpenseTab') {
+                    const sheet = document.getElementById('addExpenseSheet');
+                    if (sheet && sheet.classList.contains('open')) {
+                        // Sheet is already open, don't do anything
+                        return;
+                    }
+                    
                     if (window.ExpenseFormManager) {
                         window.ExpenseFormManager.show();
                     }
                     return;
+                }
+                
+                // Close add expense form if open
+                const addExpenseSheet = document.getElementById('addExpenseSheet');
+                if (addExpenseSheet && addExpenseSheet.classList.contains('open')) {
+                    if (window.ExpenseFormManager) {
+                        window.ExpenseFormManager.hide();
+                    }
                 }
                 
                 // Handle navigation
