@@ -143,7 +143,9 @@ window.ExpenseFormManager = {
         document.body.style.overflow = 'hidden';
         //document.body.style.position = 'fixed';
         document.body.style.width = '100%';
-        
+
+        //close category view
+        categoryViews.classList.add('hidden');
         // Show backdrop and sheet
         backdrop.classList.add('open');
         backdrop.style.background = 'rgba(0, 0, 0, 0.4)';
