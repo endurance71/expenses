@@ -92,132 +92,115 @@ window.WydatkiApp = {
     },
     
     // Setup all event listeners
-    // Poprawka do app.js - zamień funkcję setupEventListeners() na tę wersję:
-
-setupEventListeners() {
-    Utils.debugLog('Setting up event listeners...');
-    
-    // Refresh button
-    const refreshBtn = document.getElementById('refreshBtn');
-    if (refreshBtn) {
-        refreshBtn.addEventListener('click', () => this.refreshData());
-    }
-    
-    // Date selectors
-    const yearSelect = document.getElementById('yearSelect');
-    const monthSelect = document.getElementById('monthSelect');
-    
-    if (yearSelect) {
-        yearSelect.addEventListener('change', (e) => {
-            this.state.currentYear = e.target.value;
-            Utils.storage.set(APP_CONFIG.STORAGE_KEYS.SELECTED_YEAR, e.target.value);
-            this.onDateChange();
-        });
-    }
-    
-    if (monthSelect) {
-        monthSelect.addEventListener('change', (e) => {
-            this.state.currentMonth = e.target.value;
-            Utils.storage.set(APP_CONFIG.STORAGE_KEYS.SELECTED_MONTH, e.target.value);
-            this.onDateChange();
-        });
-    }
-    
-    // Summary cards - click to view category
-    const summaryCards = document.querySelectorAll('.summary-card');
-    summaryCards.forEach(card => {
-        card.addEventListener('click', () => {
-            const category = card.dataset.category;
-            if (category) {
-                // Close expense form if open
-                if (window.DashboardManager && window.DashboardManager.activeSheet === 'expense') {
-                    window.ExpenseFormManager.hide();
-                }
-                window.DashboardManager.showCategoryView(category);
-            }
-        });
-    });
-    
-    // Tab bar - improved navigation logic
-    const tabItems = document.querySelectorAll('.tab-item');
-    tabItems.forEach(item => {
-        item.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            // Handle add expense button - now with toggle
-            if (item.id === 'addExpenseTab') {
-                if (window.ExpenseFormManager) {
-                    // If already active, close it
-                    if (item.classList.contains('active')) {
-                        window.ExpenseFormManager.hide();
-                        window.DashboardManager.showDashboard();
-                    } else {
-                        // Close any open category view first
-                        if (window.DashboardManager.activeSheet === 'category') {
-                            window.DashboardManager.hideBottomSheet();
-                        }
-                        window.ExpenseFormManager.show();
-                    }
-                }
-                return;
-            }
-            
-            // Handle navigation for other tabs
-            const view = item.dataset.view;
-            const category = item.dataset.category;
-            
-            // Close expense form if it's open
-            if (window.DashboardManager && window.DashboardManager.activeSheet === 'expense') {
-                window.ExpenseFormManager.hide();
-            }
-            
-            if (view === 'dashboard') {
-                window.DashboardManager.showDashboard();
-            } else if (category) {
-                // If clicking on already active category, close it
-                if (item.classList.contains('active') && window.DashboardManager.currentCategory === category) {
-                    window.DashboardManager.showDashboard();
-                } else {
+    setupEventListeners() {
+        Utils.debugLog('Setting up event listeners...');
+        
+        // Refresh button
+        const refreshBtn = document.getElementById('refreshBtn');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', () => this.refreshData());
+        }
+        
+        // Date selectors
+        const yearSelect = document.getElementById('yearSelect');
+        const monthSelect = document.getElementById('monthSelect');
+        
+        if (yearSelect) {
+            yearSelect.addEventListener('change', (e) => {
+                this.state.currentYear = e.target.value;
+                Utils.storage.set(APP_CONFIG.STORAGE_KEYS.SELECTED_YEAR, e.target.value);
+                this.onDateChange();
+            });
+        }
+        
+        if (monthSelect) {
+            monthSelect.addEventListener('change', (e) => {
+                this.state.currentMonth = e.target.value;
+                Utils.storage.set(APP_CONFIG.STORAGE_KEYS.SELECTED_MONTH, e.target.value);
+                this.onDateChange();
+            });
+        }
+        
+        // Summary cards
+        const summaryCards = document.querySelectorAll('.summary-card');
+        summaryCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const category = card.dataset.category;
+                if (category) {
                     window.DashboardManager.showCategoryView(category);
                 }
+            });
+        });
+        
+        // Tab bar - FIXED
+        const tabItems = document.querySelectorAll('.tab-item');
+        tabItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Handle add expense button
+                if (item.id === 'addExpenseTab') {
+                    const sheet = document.getElementById('addExpenseSheet');
+                    if (sheet && sheet.classList.contains('open')) {
+                        // Sheet is already open, don't do anything
+                        return;
+                    }
+                    
+                    if (window.ExpenseFormManager) {
+                        window.ExpenseFormManager.show();
+                    }
+                    return;
+                }
+                
+                // Close add expense form if open
+                const addExpenseSheet = document.getElementById('addExpenseSheet');
+                if (addExpenseSheet && addExpenseSheet.classList.contains('open')) {
+                    if (window.ExpenseFormManager) {
+                        window.ExpenseFormManager.hide();
+                    }
+                }
+                
+                // Handle navigation
+                const view = item.dataset.view;
+                const category = item.dataset.category;
+                
+                if (view === 'dashboard') {
+                    window.DashboardManager.showDashboard();
+                } else if (category) {
+                    window.DashboardManager.showCategoryView(category);
+                }
+            });
+        });
+        
+        // Bottom sheet controls
+        this.setupBottomSheetListeners();
+        
+        // Network status listeners
+        window.addEventListener('online', () => {
+            this.state.isOnline = true;
+            Utils.debugLog('🌐 Back online');
+            this.refreshData();
+        });
+        
+        window.addEventListener('offline', () => {
+            this.state.isOnline = false;
+            Utils.debugLog('📱 Gone offline');
+        });
+        
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (window.DashboardManager) {
+                    window.DashboardManager.hideBottomSheet();
+                    window.DashboardManager.showDashboard();
+                }
             }
         });
-    });
-    
-    // Bottom sheet controls
-    this.setupBottomSheetListeners();
-    
-    // Network status listeners
-    window.addEventListener('online', () => {
-        this.state.isOnline = true;
-        Utils.debugLog('🌐 Back online');
-        this.refreshData();
-    });
-    
-    window.addEventListener('offline', () => {
-        this.state.isOnline = false;
-        Utils.debugLog('📱 Gone offline');
-    });
-    
-    // Keyboard navigation
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            if (window.DashboardManager) {
-                // Close any open sheet
-                if (window.DashboardManager.activeSheet === 'expense') {
-                    window.ExpenseFormManager.hide();
-                } else if (window.DashboardManager.activeSheet === 'category') {
-                    window.DashboardManager.hideBottomSheet();
-                }
-                window.DashboardManager.showDashboard();
-            }
-        }
-    });
-    
-    // Pull to refresh
-    this.initializePullToRefresh();
-},
+        
+        // Pull to refresh
+        this.initializePullToRefresh();
+    },
     
     // Setup bottom sheet listeners
     setupBottomSheetListeners() {

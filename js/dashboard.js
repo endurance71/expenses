@@ -1,6 +1,6 @@
 // =================================
-// DASHBOARD.JS - Dashboard Manager (FIXED)
-// Version: 1.0.4
+// DASHBOARD.JS - Dashboard Manager
+// Version: 1.0.4 - FIXED
 // =================================
 
 window.DashboardManager = {
@@ -8,7 +8,6 @@ window.DashboardManager = {
     chart: null,
     currentView: 'dashboard',
     currentCategory: null,
-    activeSheet: null, // Track which sheet is open
     
     // Initialize dashboard
     init() {
@@ -45,44 +44,6 @@ window.DashboardManager = {
                 }
             });
         }
-    },
-    
-    // Lock body scroll
-    lockBodyScroll() {
-        document.body.style.overflow = 'hidden';
-        //document.body.style.position = 'fixed';
-        document.body.style.width = '100%';
-        document.body.style.top = `-${window.scrollY}px`;
-    },
-    
-    // Unlock body scroll
-    unlockBodyScroll() {
-        const scrollY = document.body.style.top;
-        document.body.style.overflow = '';
-        document.body.style.position = '';
-        document.body.style.width = '';
-        document.body.style.top = '';
-        window.scrollTo(0, parseInt(scrollY || '0') * -1);
-    },
-    
-    // Close all sheets
-    closeAllSheets() {
-        // Close transaction sheet
-        const transactionSheet = document.getElementById('transactionSheet');
-        const transactionBackdrop = document.getElementById('sheetBackdrop');
-        if (transactionSheet) transactionSheet.classList.remove('open');
-        if (transactionBackdrop) transactionBackdrop.classList.remove('open');
-        
-        // Close expense form if open
-        if (window.ExpenseFormManager) {
-            window.ExpenseFormManager.hide();
-        }
-        
-        // Reset active sheet
-        this.activeSheet = null;
-        
-        // Unlock scroll
-        this.unlockBodyScroll();
     },
     
     // Update dashboard with data
@@ -302,18 +263,29 @@ window.DashboardManager = {
         Utils.debugLog('🏠 Showing dashboard');
         HapticManager.light();
         
-        // Close all sheets first
-        this.closeAllSheets();
-        
         this.currentView = 'dashboard';
         this.currentCategory = null;
         
         // Update title
         const navTitle = document.getElementById('navTitle');
-        if (navTitle) navTitle.textContent = 'Wydatki';
+        if (navTitle) navTitle.textContent = 'Dashboard';
         
-        // Dashboard should always be visible, no need to toggle
-        // Just make sure category sheets are closed
+        // Update views
+        const dashboardView = document.getElementById('dashboardView');
+        const categoryViews = document.getElementById('categoryViews');
+        
+        if (dashboardView) dashboardView.classList.remove('hidden');
+        if (categoryViews) categoryViews.classList.add('hidden');
+        
+        // Update navigation
+        const navHeader = document.getElementById('navHeader');
+        const mainContent = document.getElementById('mainContent');
+        
+        if (navHeader) navHeader.classList.remove('category-view');
+        if (mainContent) mainContent.classList.remove('category-view');
+        
+        // Hide bottom sheet
+        this.hideBottomSheet();
         
         // Update tab bar
         this.updateTabBar('dashboard');
@@ -324,19 +296,26 @@ window.DashboardManager = {
         Utils.debugLog(`📊 Showing category: ${category}`);
         HapticManager.light();
         
-        // Close expense form if open
-        if (this.activeSheet === 'expense') {
-            if (window.ExpenseFormManager) {
-                window.ExpenseFormManager.hide();
-            }
-        }
-        
         this.currentView = 'category';
         this.currentCategory = category;
-        this.activeSheet = 'category';
         
-        // Lock scroll
-        this.lockBodyScroll();
+        // Update title
+        const navTitle = document.getElementById('navTitle');
+        if (navTitle) navTitle.textContent = category;
+        
+        // Update views
+        const dashboardView = document.getElementById('dashboardView');
+        const categoryViews = document.getElementById('categoryViews');
+        
+        if (dashboardView) dashboardView.classList.add('hidden');
+        if (categoryViews) categoryViews.classList.remove('hidden');
+        
+        // Update navigation
+        const navHeader = document.getElementById('navHeader');
+        const mainContent = document.getElementById('mainContent');
+        
+        if (navHeader) navHeader.classList.add('category-view');
+        if (mainContent) mainContent.classList.add('category-view');
         
         // Show transactions for category
         if (WydatkiApp.state.currentData && WydatkiApp.state.currentData.recentTransactions) {
@@ -359,6 +338,16 @@ window.DashboardManager = {
         const sheetContent = document.getElementById('sheetContent');
         
         if (!sheet || !backdrop || !sheetTitle || !sheetContent) return;
+        
+        // Apply proper backdrop styling
+        backdrop.style.background = 'rgba(0, 0, 0, 0.4)';
+        backdrop.style.backdropFilter = 'blur(10px)';
+        backdrop.style.webkitBackdropFilter = 'blur(10px)';
+        
+        // Block body scroll
+        document.body.style.overflow = 'hidden';
+        //document.body.style.position = 'fixed';
+        document.body.style.width = '100%';
         
         sheetTitle.textContent = `${title} - Transakcje`;
         
@@ -403,11 +392,13 @@ window.DashboardManager = {
         const sheet = document.getElementById('transactionSheet');
         const backdrop = document.getElementById('sheetBackdrop');
         
+        // Restore body scroll
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.width = '';
+        
         if (sheet) sheet.classList.remove('open');
         if (backdrop) backdrop.classList.remove('open');
-        
-        this.unlockBodyScroll();
-        this.activeSheet = null;
         
         HapticManager.light();
     },
@@ -420,9 +411,7 @@ window.DashboardManager = {
             const view = item.dataset.view;
             const category = item.dataset.category;
             
-            const isActive = (view === activeItem) || 
-                            (category === activeItem) || 
-                            (item.id === 'addExpenseTab' && this.activeSheet === 'expense');
+            const isActive = (view === activeItem) || (category === activeItem);
             
             item.classList.toggle('active', isActive);
             item.setAttribute('aria-selected', isActive.toString());

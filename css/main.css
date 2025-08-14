@@ -192,7 +192,7 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    min-height: 100vh;
+    min-height: 100dvh;
     background-color: var(--system-grouped-background);
     isolation: isolate;
 }
@@ -523,7 +523,6 @@ body {
 
 .bottom-sheet.open {
     transform: translateY(0);
-    padding-bottom: calc(5vh + var(--safe-area-bottom));
 }
 
 .bottom-sheet-handle {
@@ -1124,156 +1123,4 @@ input[type="tel"]#amount {
     background-position: right 12px center;
     background-size: 20px;
     padding-right: 40px;
-}
-
-
-
-
-
-
-/* Dodaj te style do main.css lub utwórz nowy plik scroll-lock.css */
-
-/* =================================
-   Body Scroll Lock Styles
-   ================================= */
-
-/* When body scroll is locked */
-body.scroll-locked {
-    overflow: hidden !important;
-    position: fixed !important;
-    width: 100% !important;
-    height: 100vh !important;
-}
-
-
-/* Main content should not move when sheets open */
-.main-content {
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    height: 100%;
-}
-
-/* When bottom sheet is open, prevent background interaction */
-.sheet-backdrop.open + .bottom-sheet {
-    pointer-events: auto;
-}
-
-.sheet-backdrop.open ~ .app-container {
-    pointer-events: none;
-    user-select: none;
-    -webkit-user-select: none;
-}
-
-/* Bottom sheets should handle their own scrolling */
-.bottom-sheet.open {
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-}
-
-.bottom-sheet.open .bottom-sheet-content {
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
-    max-height: calc(80vh - 120px);
-    flex: 1;
-}
-
-/* Expense form specific scrolling */
-#addExpenseSheet.open .bottom-sheet-content {
-    max-height: calc(85vh - 100px);
-    padding-bottom: 20px;
-}
-
-/* Transaction sheet specific */
-#transactionSheet.open .bottom-sheet-content {
-    max-height: calc(80vh - 120px);
-}
-
-/* Ensure backdrop covers everything */
-.sheet-backdrop {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 1000;
-    background: rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    opacity: 0;
-    visibility: hidden;
-    transition: all var(--duration-normal) ease;
-    pointer-events: none;
-}
-
-.sheet-backdrop.open {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-}
-
-/* Different backdrops for different sheets */
-#addExpenseBackdrop.open {
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    background: rgba(0, 0, 0, 0.5);
-}
-
-#sheetBackdrop.open {
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    background: rgba(0, 0, 0, 0.5);
-}
-
-/* Ensure proper stacking */
-#addExpenseSheet {
-    z-index: 1002;
-}
-
-#addExpenseBackdrop {
-    z-index: 1001;
-}
-
-#transactionSheet {
-    z-index: 1002;
-}
-
-#sheetBackdrop {
-    z-index: 1001;
-}
-
-/* Tab bar should be above sheets but allow interaction */
-
-/* Animation improvements */
-.bottom-sheet {
-    transform: translateY(100%);
-    transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
-}
-
-.bottom-sheet.open {
-    transform: translateY(0);
-}
-
-/* Prevent content jump on iOS */
-@supports (-webkit-touch-callout: none) {
-    .bottom-sheet {
-        padding-bottom: env(safe-area-inset-bottom);
-    }
-    
-    .bottom-sheet-content {
-        padding-bottom: 20px;
-    }
-}
-
-/* Dark mode adjustments */
-@media (prefers-color-scheme: dark) {
-    .sheet-backdrop {
-        background: rgba(0, 0, 0, 0.6);
-    }
-    
-    #addExpenseBackdrop.open,
-    #sheetBackdrop.open {
-        background: rgba(0, 0, 0, 0.7);
-    }
 }
