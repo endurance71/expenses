@@ -1,0 +1,1167 @@
+{
+  "name": "optimize-added-expenses",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -4592,
+        112
+      ],
+      "id": "bcb6389d-2f59-4aaa-9483-c09705224700",
+      "name": "Telegram Trigger",
+      "webhookId": "43f59b63-0bb6-4c64-94b0-779fb386a055",
+      "credentials": {
+        "telegramApi": {
+          "id": "kqhvYA6vDQAVpAI6",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Zarejestrowany wydatek: \"{{ $json.text }}\" lub \"{{ $json.content }}\" lub {{ $binary }}",
+        "options": {
+          "systemMessage": "=Instrukcje Systemowe dla Agenta\n\nJesteś asystentem do zarządzania wydatkami. Twoim zadaniem jest przeanalizowanie wiadomości i ewentualnych załączników (paragonów, faktur) oraz dodanie wydatku do arkusza Google Sheets. Jeśli to możliwe, prześlij też załącznik do Google Drive. Działasz w jednej iteracji.\n\n⸻\n\nWyodrębnij następujące dane:\n\t1.\tData – w formacie RRRR-MM-DD, strefa Europe/Warsaw.\n\t•\tWzględne daty (np. “wczoraj”) przelicz względem {{ $now.setZone('Europe/Warsaw') }}.\n\t•\tJeśli brak → null.\n\t2.\tMiejsce/Przedmiot – gdzie/na co wydano.\n\t•\tJeśli brak → null.\n\t3.\tKwota – liczba dziesiętna z kropką jako separatorem, bez symbolu waluty.\n\t•\tPrzykład: “49,99 zł” → 49.99.\n\t•\tJeśli brak → null.\n\t4.\tKategoria – Prywatne, MT HUB, FHU Gabriela.\nZasady klasyfikacji:\n\t•\tJeśli dokument zawiera NIP 8393229228 → MT HUB\n\t•\tJeśli dokument zawiera NIP 8393251475 → FHU\n\t•\tW pozostałych przypadkach, jeśli nie ma pewności lub brak danych → prywatny\n\t\t5.\tSubKategoria:\n• Jeśli kategoria to Prywatne, przypisz szczegółową subkategorię wydatku, np. Żywność, Odzież, Transport, Rozrywka, Zdrowie, Hobby, RTV/AGD, inne.\n• Jeśli kategoria to MT HUB → subkategoria: MT_HUB\n• Jeśli kategoria to FHU Gabriela → subkategoria: FHU\n⸻\n🔠 UWAGA: Zwracaj szczególną uwagę na wielkość liter. Kategoria i subkategoria muszą dokładnie odpowiadać wzorcowi (case-sensitive). Nie przekształcaj ani nie normalizuj wielkości liter.\nPrzykładowo:\n\t•\tPrywatne, Firmowe - prawidłowe\n    •\tMT_HUB, FHU – prawidłowe\n\t•\tMt Hub, mt hub, MTHub, prywatne, firmowe – nieprawidłowe\n\nTo samo dotyczy kategorii Prywatne i FHU.\n\nNarzędzia dodaj_wydatek_do_bazy (użyj tylko, jeśli wszystkie dane są dostępne)\nwydatek_folder_id:\n\t•\tJeśli Prywatne → {{ $('Get a row').item.json.prywatne_id }}\n\t•\tJeśli MT HUB → {{ $('Get a row').item.json.mt_hub_id }}\n\t•\tJeśli FHU → {{ $('Get a row').item.json.fhu_id }}\n⸻\n\nFormat odpowiedzi\n\nSukces\n\n✅ Wydatek dodany:\n• 📅 Data:\n• 🏷️ Miejsce/Przedmiot:\n• 💸 Kwota: (zł, przecinek jako separator)\n• 🔖 Kategoria:\n\n\nTylko załącznik\n\n📸 Załącznik przesłany do Google Drive. Brak danych do dodania wydatku.\n\nProblem\n\n🔴 Problem z dodaniem wydatku. Brakuje danych o:",
+          "passthroughBinaryImages": true
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -1088,
+        80
+      ],
+      "id": "7a0a7ad8-ccdb-4ef9-9e70-32fe18db4ea6",
+      "name": "AI Agent",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "id": "7c91a664-3634-41e0-a1c8-2e195b9b509e"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Text"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "b6f5f508-c214-4f1a-925b-16dca2a94a74",
+                    "leftValue": "={{ $('Telegram Trigger').item.json.message.voice.file_id }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "=Voice"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "22c624df-56e4-4bc2-bf8a-6d41614556d9",
+                    "leftValue": "={{ $('Telegram Trigger').item.json.message.photo.last().file_id }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Image"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -2320,
+        112
+      ],
+      "id": "de35a0f4-fe98-40b3-bb42-661c114a61cd",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $('Telegram Trigger').item.json.message.photo.last().file_id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -2112,
+        272
+      ],
+      "id": "4bb7bb22-5a7b-4408-8b5b-71d036627642",
+      "name": "Get a file",
+      "webhookId": "f958eab9-5219-4d94-acfb-50092befd378",
+      "credentials": {
+        "telegramApi": {
+          "id": "kqhvYA6vDQAVpAI6",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -1104,
+        304
+      ],
+      "id": "9292110e-1a01-4f15-b32b-508c242450c5",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "wPq0zN234fVqqboA",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const inputItems = $input.all(); // Pobierz wszystkie elementy z poprzedniego węzła\n\nconst monthTranslations = {\n  \"January\": \"Styczeń\",\n  \"February\": \"Luty\",\n  \"March\": \"Marzec\",\n  \"April\": \"Kwiecień\",\n  \"May\": \"Maj\",\n  \"June\": \"Czerwiec\",\n  \"July\": \"Lipiec\",\n  \"August\": \"Sierpień\",\n  \"September\": \"Wrzesień\",\n  \"October\": \"Październik\",\n  \"November\": \"Listopad\",\n  \"December\": \"Grudzień\"\n};\n\nconst monthNumbers = {\n    \"January\": \"01\",\n    \"February\": \"02\",\n    \"March\": \"03\",\n    \"April\": \"04\",\n    \"May\": \"05\",\n    \"June\": \"06\",\n    \"July\": \"07\",\n    \"August\": \"08\",\n    \"September\": \"09\",\n    \"October\": \"10\",\n    \"November\": \"11\",\n    \"December\": \"12\"\n};\n\nconst WARSAW_TIMEZONE = 'Europe/Warsaw';\n\nconst outputData = inputItems.map(item => {\n    // Odczytaj znacznik czasu z pola 'currentTimestamp' z poprzedniego węzła\n    // Jeśli z jakiegoś powodu go nie ma, użyj aktualnej daty\n    const currentMoment = item.json.currentTimestamp ? new Date(item.json.currentTimestamp) : new Date();\n\n    // Utwórz obiekt Intl.DateTimeFormat dla strefy czasowej Warszawy\n    const formatter = new Intl.DateTimeFormat('en-US', {\n        year: 'numeric',\n        month: 'long',\n        day: '2-digit',\n        hour: '2-digit',\n        minute: '2-digit',\n        second: '2-digit',\n        hour12: false, // Użyj formatu 24-godzinnego dla łatwiejszej ekstrakcji\n        timeZone: WARSAW_TIMEZONE\n    });\n\n    // Sformatuj datę i czas w strefie czasowej Warszawy\n    const parts = formatter.formatToParts(currentMoment);\n    const getPart = (type) => parts.find(part => part.type === type)?.value;\n\n    const year = getPart('year');\n    const englishMonth = getPart('month'); // Nazwa miesiąca w języku angielskim\n    const dayOfMonth = getPart('day');\n    const hour = getPart('hour');\n    const minute = getPart('minute');\n    const second = getPart('second');\n\n    // Tłumaczenie miesiąca na polski\n    const polishMonth = monthTranslations[englishMonth] || englishMonth;\n    const monthNumber = monthNumbers[englishMonth] || \"\";\n\n    // Aby uzyskać \"Day of week\" w strefie czasowej Warszawy:\n    const dayOfWeekFormatter = new Intl.DateTimeFormat('en-US', { weekday: 'long', timeZone: WARSAW_TIMEZONE });\n    const dayOfWeek = dayOfWeekFormatter.format(currentMoment);\n\n    // Aby uzyskać \"Readable date\" i \"Readable time\" z uwzględnieniem AM/PM (jeśli chcesz)\n    // w strefie czasowej Warszawy:\n    const readableDateFormatter = new Intl.DateTimeFormat('en-US', {\n        month: 'long', day: 'numeric', year: 'numeric',\n        hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: true,\n        timeZone: WARSAW_TIMEZONE\n    });\n    const readableTimeFormatter = new Intl.DateTimeFormat('en-US', {\n        hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: true,\n        timeZone: WARSAW_TIMEZONE\n    });\n\n    // NOWA FUNKCJONALNOŚĆ: Formatowanie daty w formacie 2025-07-23 10:43:00+00\n    // Uwzględniając strefę czasową Polski (CEST/CET)\n    const formatPolishDateTime = () => {\n        const date = new Date(currentMoment);\n        \n        // Formatowanie w strefie czasowej Polski\n        const polishFormatter = new Intl.DateTimeFormat('en-CA', {\n            year: 'numeric',\n            month: '2-digit',\n            day: '2-digit',\n            hour: '2-digit',\n            minute: '2-digit',\n            second: '2-digit',\n            hour12: false,\n            timeZone: WARSAW_TIMEZONE\n        });\n        \n        const polishParts = polishFormatter.formatToParts(date);\n        const getPolishPart = (type) => polishParts.find(part => part.type === type)?.value;\n        \n        const polishYear = getPolishPart('year');\n        const polishMonth = getPolishPart('month');\n        const polishDay = getPolishPart('day');\n        const polishHour = getPolishPart('hour');\n        const polishMinute = getPolishPart('minute');\n        const polishSecond = getPolishPart('second');\n        \n        // Określ offset dla Polski (CEST +02:00 latem, CET +01:00 zimą)\n        const isDST = (date) => {\n            const jan = new Date(date.getFullYear(), 0, 1);\n            const jul = new Date(date.getFullYear(), 6, 1);\n            return date.getTimezoneOffset() < Math.max(jan.getTimezoneOffset(), jul.getTimezoneOffset());\n        };\n        \n        // Sprawdź czy to czas letni czy zimowy w Polsce\n        const tempDate = new Date();\n        tempDate.setFullYear(parseInt(polishYear), parseInt(polishMonth) - 1, parseInt(polishDay));\n        tempDate.setHours(parseInt(polishHour), parseInt(polishMinute), parseInt(polishSecond));\n        \n        // Polska używa CEST (+02) latem i CET (+01) zimą\n        const offset = isDST(tempDate) ? '+02' : '+01';\n        \n        return `${polishYear}-${polishMonth}-${polishDay} ${polishHour}:${polishMinute}:${polishSecond}${offset}`;\n    };\n\n    return {\n        json: {\n            // timestamp w ISO zawsze będzie w UTC, ale reprezentuje czas w Warszawie\n            \"timestamp\": currentMoment.toISOString(),\n            \"Readable date\": readableDateFormatter.format(currentMoment),\n            \"Readable time\": readableTimeFormatter.format(currentMoment),\n            \"Day of week\": dayOfWeek,\n            \"Year\": year,\n            \"Month\": polishMonth,\n            \"Day of month\": dayOfMonth,\n            \"Hour\": hour,\n            \"Minute\": minute,\n            \"Second\": second,\n            \"Timezone\": WARSAW_TIMEZONE + \" (UTC+02:00)\", // Jawnie ustawiamy strefę czasową\n            \"Month Number\": monthNumber,\n            \"aktualna data i godzina\": formatPolishDateTime() // NOWE POLE\n        }\n    };\n});\n\nreturn outputData;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -4128,
+        128
+      ],
+      "id": "047a41aa-2012-4901-8d4c-cf53e70fc6da",
+      "name": "Ekstrakcja aktualnej daty"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.categoryType }}",
+                    "rightValue": "prywatny",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "155c39c2-bd94-4403-987b-16d9c8f02682"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "prywatny"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "836da5c1-7eb3-4d6e-bf49-61255c642190",
+                    "leftValue": "={{ $json.categoryType }}",
+                    "rightValue": "MT HUB",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "MT HUB"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "a1920598-dd5b-435f-9472-7af7ec89fbb3",
+                    "leftValue": "={{ $json.categoryType }}",
+                    "rightValue": "FHU",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "FHU"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -512,
+        80
+      ],
+      "id": "3cc217eb-8f93-4a33-8fbc-2e6816a9eaaf",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const inputText = $input.item.json.output; // TYLKO JEDNA DEKLARACJA\n\nlet category = 'nieznana';\n\n// Szukamy konkretnie: MT HUB, FHU lub prywatny\nconst regex = /Kategoria: (MT HUB|FHU|prywatn(?:y|e)?)/i;\nconst match = inputText.match(regex);\n\nif (match && match[1]) {\n    const kat = match[1].toLowerCase();\n    if (kat.includes('mt hub')) {\n        category = 'MT HUB';\n    } else if (kat.includes('fhu')) {\n        category = 'FHU';\n    } else if (kat.startsWith('prywatn')) {\n        category = 'prywatny';\n    }\n}\n\n$input.item.json.categoryType = category;\n\nreturn $input.item;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -704,
+        80
+      ],
+      "id": "04fba468-f46f-48ea-8cd7-8d5006a1a8c8",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "name": "={{ $('Get a file').item.json.result.file_path }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('Get a row').item.json.month_id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -1648,
+        272
+      ],
+      "id": "ada3c670-cb3a-47f1-af73-db02b6056a5e",
+      "name": "Upload file",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "8rOZXse195CURpXw",
+          "name": "Google Drive account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -1376,
+        272
+      ],
+      "id": "4f302a50-b7d4-4cc0-ab3d-160aae8937c8",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "8rOZXse195CURpXw",
+          "name": "Google Drive account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "move",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Upload file').item.json.id }}",
+          "mode": "id"
+        },
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('Get a row').item.json.prywatne_id }}",
+          "mode": "id"
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -192,
+        -112
+      ],
+      "id": "326e2032-6246-445e-aedf-2630a7746f1e",
+      "name": "Move prywatny",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "8rOZXse195CURpXw",
+          "name": "Google Drive account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $('AI Agent').item.json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        144,
+        48
+      ],
+      "id": "b5f13e79-e3a2-4c57-ad7b-854d10dfa39a",
+      "name": "Send a text message1",
+      "webhookId": "de2223d3-2e79-402e-a193-15bd2b71431f",
+      "credentials": {
+        "telegramApi": {
+          "id": "kqhvYA6vDQAVpAI6",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "Zdjęcie zostało przesłane. Trwa analiza. ",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -4400,
+        112
+      ],
+      "id": "a2b3edd1-23be-4da8-81c1-c6f77f97897b",
+      "name": "Send a text message",
+      "webhookId": "de2223d3-2e79-402e-a193-15bd2b71431f",
+      "credentials": {
+        "telegramApi": {
+          "id": "kqhvYA6vDQAVpAI6",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "❌ Wystąpił błąd autoryzacji Agent AI. Wykonaj autoryzację w n8n. ❌ ",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -624,
+        464
+      ],
+      "id": "ba8fc34f-c302-4143-8fde-36bb480d8318",
+      "name": "Error autoryzacja agenta Ai",
+      "webhookId": "de2223d3-2e79-402e-a193-15bd2b71431f",
+      "credentials": {
+        "telegramApi": {
+          "id": "kqhvYA6vDQAVpAI6",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "❌ Wystąpił problem z przesłaniem pliku na google drive. Sprawdź automatyzację w n8n. ❌ ",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -1552,
+        512
+      ],
+      "id": "d30431f4-a8ea-4937-836f-9981eacbdf4f",
+      "name": "Error upload file",
+      "webhookId": "de2223d3-2e79-402e-a193-15bd2b71431f",
+      "credentials": {
+        "telegramApi": {
+          "id": "kqhvYA6vDQAVpAI6",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "move",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Download file').item.json.id }}",
+          "mode": "id"
+        },
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('Get a row').item.json.mt_hub_id }}",
+          "mode": "id"
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -192,
+        80
+      ],
+      "id": "ad682668-a9ce-48f8-8fa9-fe8c7376aee6",
+      "name": "Move MTHUB",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "8rOZXse195CURpXw",
+          "name": "Google Drive account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "move",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Download file').item.json.id }}",
+          "mode": "id"
+        },
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('Get a row').item.json.fhu_id}}",
+          "mode": "id"
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -192,
+        288
+      ],
+      "id": "b705bc4d-0395-4989-a510-f9a572994464",
+      "name": "Move FHU",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "8rOZXse195CURpXw",
+          "name": "Google Drive account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "folder_registry",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "month",
+              "keyValue": "={{ $json.invoiceMonth}}"
+            },
+            {
+              "keyName": "year",
+              "keyValue": "={{ $json.invoiceYear }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -2560,
+        128
+      ],
+      "id": "2d055399-558c-46a3-bb91-86d7d1281e35",
+      "name": "Get a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "pNSSt5wAQlRfIO2r",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "Wykryto tekst. Wrzuć zdjęcie.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -2016,
+        -64
+      ],
+      "id": "0a2de4e0-58dc-4a78-8e9e-358520393305",
+      "name": "Send a text message2",
+      "webhookId": "de2223d3-2e79-402e-a193-15bd2b71431f",
+      "credentials": {
+        "telegramApi": {
+          "id": "kqhvYA6vDQAVpAI6",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "Wykryto dźwięk. Wrzuć zdjęcie.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -2016,
+        112
+      ],
+      "id": "58021996-04b5-4dc3-90b0-a622ff993ab1",
+      "name": "Send a text message3",
+      "webhookId": "de2223d3-2e79-402e-a193-15bd2b71431f",
+      "credentials": {
+        "telegramApi": {
+          "id": "kqhvYA6vDQAVpAI6",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "detailed_expenses",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "description",
+              "fieldValue": "={{ $fromAI('Miejsce-Przedmiot', ``, 'string') }}"
+            },
+            {
+              "fieldId": "expense_date",
+              "fieldValue": "={{ $fromAI('Data', ``, 'string') }}"
+            },
+            {
+              "fieldId": "amount",
+              "fieldValue": "={{ $fromAI('Kwota', ``, 'string') }}"
+            },
+            {
+              "fieldId": "category",
+              "fieldValue": "={{ $fromAI('Kategoria', ``, 'string') }}"
+            },
+            {
+              "fieldId": "folder_id",
+              "fieldValue": "={{ $fromAI('wydatek_folder_id', ``, 'string') }}"
+            },
+            {
+              "fieldId": "subcategory",
+              "fieldValue": "={{ $fromAI('SubKategoria', ``, 'string') }}"
+            },
+            {
+              "fieldId": "created_at",
+              "fieldValue": "={{ $('Ekstrakcja aktualnej daty').item.json['aktualna data i godzina'] }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabaseTool",
+      "typeVersion": 1,
+      "position": [
+        -928,
+        512
+      ],
+      "id": "70920b94-8ba7-4eea-83b5-06ea5ad0040e",
+      "name": "Dodaj wydatek do bazy",
+      "credentials": {
+        "supabaseApi": {
+          "id": "pNSSt5wAQlRfIO2r",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $('Telegram Trigger').item.json.message.photo.last().file_id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -3872,
+        128
+      ],
+      "id": "48d4d2cd-c2db-43d7-b324-fb0bc043612f",
+      "name": "Get a file1",
+      "webhookId": "f958eab9-5219-4d94-acfb-50092befd378",
+      "credentials": {
+        "telegramApi": {
+          "id": "kqhvYA6vDQAVpAI6",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "text": "=Twoje zadanie:\n\n1. Przeanalizuj załączone zdjęcie lub skan faktury, rachunku lub paragonu.\n2. Znajdź **rzeczywistą datę wystawienia dokumentu** – tylko tę, która jest widoczna w treści dokumentu.\n3. Nie zgaduj – nie używaj dzisiejszej daty ani roku domyślnego. Jeśli nie masz pewności, zwróć `null`.\n\n🔁 Zwróć wynik jako **czysta tablica JSON**, dokładnie w tym formacie:\n[\n  {\n    \"invoiceDay\": \"DD\",\n    \"invoiceMonth\": \"MM\",\n    \"invoiceYear\": \"YYYY\"\n  }\n]\n\n📌 Jeśli dokument nie zawiera jednoznacznej daty, zwróć:\n[\n  {\n    \"invoiceDay\": null,\n    \"invoiceMonth\": null,\n    \"invoiceYear\": null\n  }\n]\n\n🧠 Aktualny data i godzina to {{ $('Ekstrakcja aktualnej daty').item.json['aktualna data i godzina'] }} – nie zakładaj automatycznie 2023 ani 2024. Upewnij się, że data pochodzi z dokumentu, a nie z domysłu.\n\n❗Odpowiedź ma zawierać **tylko czysty JSON**, bez znaczników kodu (np. ```json), komentarzy ani dodatkowego opisu.",
+        "inputType": "base64",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -3456,
+        128
+      ],
+      "id": "ea86b0c9-a298-4b29-9f8c-427ce5e047a4",
+      "name": "Analyze image",
+      "credentials": {
+        "openAiApi": {
+          "id": "wPq0zN234fVqqboA",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "for (const item of items) {\n  // Sprawdzamy, czy element ma dane binarne i czy te dane istnieją\n  if (item.binary && item.binary.data) {\n    const binaryData = item.binary.data; // Odwołanie do obiektu z danymi binarnymi\n\n    const ext = binaryData.fileExtension?.toLowerCase(); // Pobieramy rozszerzenie pliku\n    let newMimeType = binaryData.mimeType; // Domyślnie zachowujemy istniejący mimeType\n\n    // Logika zmiany mimeType na podstawie rozszerzenia\n    if (ext === 'jpg' || ext === 'jpeg') {\n      newMimeType = 'image/jpeg';\n    } else if (ext === 'png') {\n      newMimeType = 'image/png';\n    } else if (ext === 'webp') {\n      newMimeType = 'image/webp';\n    }\n\n    // WAŻNA ZMIANA: Zapisujemy nową wartość z powrotem do obiektu\n    binaryData.mimeType = newMimeType;\n  }\n}\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3648,
+        128
+      ],
+      "id": "57428f89-fbb5-4423-9c41-faa7c0858de1",
+      "name": "change mimetype",
+      "alwaysOutputData": true,
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "for (const item of items) {\n  // Sprawdzamy, czy element ma dane binarne i czy te dane istnieją\n  if (item.binary && item.binary.data) {\n    const binaryData = item.binary.data; // Odwołanie do obiektu z danymi binarnymi\n\n    const ext = binaryData.fileExtension?.toLowerCase(); // Pobieramy rozszerzenie pliku\n    let newMimeType = binaryData.mimeType; // Domyślnie zachowujemy istniejący mimeType\n\n    // Logika zmiany mimeType na podstawie rozszerzenia\n    if (ext === 'jpg' || ext === 'jpeg') {\n      newMimeType = 'image/jpeg';\n    } else if (ext === 'png') {\n      newMimeType = 'image/png';\n    } else if (ext === 'webp') {\n      newMimeType = 'image/webp';\n    }\n\n    // WAŻNA ZMIANA: Zapisujemy nową wartość z powrotem do obiektu\n    binaryData.mimeType = newMimeType;\n  }\n}\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1872,
+        272
+      ],
+      "id": "4597f2cb-005a-4a77-9161-d31fc51f61e1",
+      "name": "change mimetype1",
+      "alwaysOutputData": true,
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json[\"content\"];\n\ntry {\n  // Parsujemy string JSON do tablicy obiektów\n  const parsedArray = JSON.parse(raw);\n\n  const data = parsedArray[0];\n\n  return [\n    {\n      json: {\n        invoiceDay: parseInt(data.invoiceDay, 10),\n        invoiceMonth: parseInt(data.invoiceMonth, 10),\n        invoiceYear: parseInt(data.invoiceYear, 10)\n      }\n    }\n  ];\n} catch (error) {\n  return [\n    {\n      json: {\n        invoiceDay: null,\n        invoiceMonth: null,\n        invoiceYear: null,\n        error: \"Nieprawidłowy format JSON w polu content\"\n      }\n    }\n  ];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3248,
+        128
+      ],
+      "id": "00dac3f1-bd4a-4aa4-8cd4-441f1b88f06d",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "cebfda1b-23fc-4d9d-96ca-64fe9b992e3d",
+              "leftValue": "={{ $json.invoiceDay }}",
+              "rightValue": "null",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "eb260322-ccc3-4bab-a8c6-821273468bae",
+              "leftValue": "={{ $json.invoiceMonth }}",
+              "rightValue": "null",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "3f8e72be-95cb-4cc8-b0e0-37ad266ea19e",
+              "leftValue": "={{ $json.invoiceYear }}",
+              "rightValue": "null",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -3040,
+        128
+      ],
+      "id": "b93fff91-65f0-401b-a269-de1e67456659",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "❌ Wystąpił problem z odczytaniem daty rachunku. ❌",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -2784,
+        48
+      ],
+      "id": "97f2a155-6e5a-4149-b24b-a3a0a7f3fd77",
+      "name": "error date",
+      "webhookId": "de2223d3-2e79-402e-a193-15bd2b71431f",
+      "credentials": {
+        "telegramApi": {
+          "id": "kqhvYA6vDQAVpAI6",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error autoryzacja agenta Ai",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Send a text message2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a file": {
+      "main": [
+        [
+          {
+            "node": "change mimetype1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ekstrakcja aktualnej daty": {
+      "main": [
+        [
+          {
+            "node": "Get a file1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Move prywatny",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Move MTHUB",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Move FHU",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload file": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error upload file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Move prywatny": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        [
+          {
+            "node": "Ekstrakcja aktualnej daty",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Move MTHUB": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Move FHU": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a row": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dodaj wydatek do bazy": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a file1": {
+      "main": [
+        [
+          {
+            "node": "change mimetype",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "change mimetype": {
+      "main": [
+        [
+          {
+            "node": "Analyze image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "change mimetype1": {
+      "main": [
+        [
+          {
+            "node": "Upload file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze image": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "error date",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "cd854273-c672-48a9-a987-0f1e39e470fe",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bf72b9fcc7a9ac2b514d2ba3ec6fb953375a71d78fa918c9013d959f21219785"
+  },
+  "id": "W0tNDxvVikyoDVxM",
+  "tags": []
+}

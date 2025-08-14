@@ -1,0 +1,360 @@
+{
+  "name": "Dashboard Yearly Fast",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "dashboard-wydatki-yearly",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "9f4ebf2d-ac67-44ff-8025-d30322328ba7",
+      "name": "Webhook Yearly Fast",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        -480,
+        32
+      ],
+      "webhookId": "dashboard-wydatki-yearly-fast"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse parametrów dla yearly API\nconst input = $input.first().json || {};\nlet urlParams = {};\n\nif (input.query) urlParams = { ...urlParams, ...input.query };\nif (input.year) urlParams = { ...urlParams, year: input.year };\nif (input.body && typeof input.body === 'object') urlParams = { ...urlParams, ...input.body };\n\nconst now = new Date();\nconst currentYear = now.getFullYear();\n\n// Walidacja roku\nconst inputYear = parseInt(urlParams.year);\nconst year = (inputYear >= 2020 && inputYear <= currentYear + 1) ? inputYear : currentYear;\n\nconsole.log(`[YearlyAPI] Request for year ${year}`);\n\nreturn [{\n  json: {\n    year: year,\n    requestedAt: now.toISOString()\n  }\n}];"
+      },
+      "id": "0b49b714-d135-4f9a-a236-b5c7c8e263c1",
+      "name": "Parse Yearly Params",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -80,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "monthly_expenses",
+        "returnAll": true,
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "year",
+              "condition": "eq",
+              "keyValue": "={{ $json.year }}"
+            }
+          ]
+        }
+      },
+      "id": "734fb665-de43-48c0-b91b-6a9833f8aa47",
+      "name": "Get Yearly Data (SUPER FAST)",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        96,
+        288
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "pNSSt5wAQlRfIO2r",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "4abe7eef-1c45-4365-9836-bf05583890f7",
+      "name": "Merge Yearly Data",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        352,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ✅ POPRAWIONY KOD dla node \"Process Yearly Data (FAST)\"\n// Merge rozpakował tablicę na osobne inputy\n\nconst inputs = $input.all();\nconsole.log('=== FINAL DEBUG ===');\nconsole.log('Number of inputs:', inputs.length);\n\n// ✅ Każdy input to osobny obiekt z tablicy Merge\nlet params = {};\nlet monthlyRows = [];\n\ninputs.forEach((input, index) => {\n    console.log(`\\n--- INPUT ${index} ---`);\n    \n    // Sprawdź czy input ma wrapper .json czy jest bezpośredni\n    const data = input.json || input;\n    console.log('Data keys:', Object.keys(data));\n    console.log('Has month:', !!data.month);\n    console.log('Has total_amount:', !!data.total_amount);\n    \n    // Sprawdź czy to parametry (ma year ale nie ma month)\n    if (data.year && !data.month) {\n        params = data;\n        console.log('✅ Found params:', params);\n    }\n    // Sprawdź czy to dane miesięczne (ma month i total_amount)\n    else if (data.month && data.total_amount !== undefined) {\n        monthlyRows.push(data);\n        console.log(`✅ Found monthly data: month ${data.month} (${data.month_name}), amount ${data.total_amount} zł`);\n    }\n    else {\n        console.log('⚪ Skipped - not recognized as params or monthly data');\n    }\n});\n\nconsole.log('\\n=== EXTRACTION RESULTS ===');\nconsole.log('Params found:', Object.keys(params).length > 0 ? 'YES' : 'NO');\nconsole.log('Monthly rows found:', monthlyRows.length);\n\nif (Object.keys(params).length > 0) {\n    console.log('Params:', params);\n}\n\nmonthlyRows.forEach(row => {\n    console.log(`  📊 Month ${row.month} (${row.month_name}): ${row.total_amount} zł`);\n});\n\n// Sprawdź czy mamy jakiekolwiek dane miesięczne\nif (monthlyRows.length === 0) {\n    console.log('❌ No monthly data found - returning empty result');\n    // POPRAWKA: Zwracamy pusty obiekt zamiast pustej tablicy\n    return [{ json: { months: [], error: 'No data found' } }];\n}\n\n// Sortuj według miesiąca\nmonthlyRows.sort((a, b) => (a.month || 0) - (b.month || 0));\n\nconst now = new Date();\nconst currentYear = now.getFullYear();\nconst currentMonth = now.getMonth() + 1;\n\n// Określ rok i maksymalny miesiąc\nconst requestedYear = params.year || monthlyRows[0].year || currentYear;\nconst maxMonth = (requestedYear === currentYear) ? currentMonth : 12;\n\nconsole.log('\\n=== PROCESSING SETUP ===');\nconsole.log('Requested year:', requestedYear);\nconsole.log('Max month to process:', maxMonth);\nconsole.log('Available months:', monthlyRows.map(r => r.month).sort());\n\n// Mapuj miesiące na odpowiedzi API\nconst monthNames = [\n  'Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec',\n  'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'\n];\n\n// Utwórz mapę istniejących danych\nconst dataByMonth = new Map();\nmonthlyRows.forEach(row => {\n  dataByMonth.set(row.month, row);\n});\n\n// Przygotuj dane dla wszystkich miesięcy (1 do maxMonth)\nconst monthsData = [];\nfor (let month = 1; month <= maxMonth; month++) {\n  const row = dataByMonth.get(month);\n  \n  if (row) {\n    // Mamy dane - użyj ich\n    const totalAmount = parseFloat(row.total_amount) || 0;\n    const privateAmount = parseFloat(row.private_amount) || 0;\n    const mtHubAmount = parseFloat(row.mt_hub_amount) || 0;\n    const fhuAmount = parseFloat(row.fhu_amount) || 0;\n    const recordCount = parseInt(row.record_count) || 0;\n    \n    // Oblicz liczbę transakcji per kategoria proporcjonalnie\n    const totalCategoryAmount = privateAmount + mtHubAmount + fhuAmount;\n    let privateCount = 0;\n    let mtHubCount = 0;\n    let fhuCount = 0;\n    \n    if (totalCategoryAmount > 0 && recordCount > 0) {\n      // Oblicz proporcje dla każdej kategorii\n      const privateRatio = privateAmount / totalCategoryAmount;\n      const mtHubRatio = mtHubAmount / totalCategoryAmount;\n      const fhuRatio = fhuAmount / totalCategoryAmount;\n      \n      // Przydziel transakcje proporcjonalnie\n      privateCount = Math.round(privateRatio * recordCount);\n      mtHubCount = Math.round(mtHubRatio * recordCount);\n      fhuCount = Math.round(fhuRatio * recordCount);\n      \n      // Skoryguj, aby suma się zgadzała\n      const calculatedTotal = privateCount + mtHubCount + fhuCount;\n      if (calculatedTotal !== recordCount) {\n        // Znajdź kategorię z największą kwotą i skoryguj\n        if (privateAmount >= mtHubAmount && privateAmount >= fhuAmount) {\n          privateCount += (recordCount - calculatedTotal);\n        } else if (mtHubAmount >= fhuAmount) {\n          mtHubCount += (recordCount - calculatedTotal);\n        } else {\n          fhuCount += (recordCount - calculatedTotal);\n        }\n      }\n      \n      // Upewnij się, że każda kategoria z kwotą ma przynajmniej 1 transakcję\n      if (privateAmount > 0 && privateCount === 0) privateCount = 1;\n      if (mtHubAmount > 0 && mtHubCount === 0) mtHubCount = 1;\n      if (fhuAmount > 0 && fhuCount === 0) fhuCount = 1;\n    }\n    \n    monthsData.push({\n      month: month,\n      monthName: row.month_name || monthNames[month - 1],\n      data: {\n        monthlyExpenses: totalAmount,\n        expenseCategories: [\n          {\n            name: 'Prywatne',\n            amount: privateAmount,\n            transactionCount: privateCount,\n            color: '#34C759'\n          },\n          {\n            name: 'MT HUB',\n            amount: mtHubAmount,\n            transactionCount: mtHubCount,\n            color: '#007AFF'\n          },\n          {\n            name: 'FHU',\n            amount: fhuAmount,\n            transactionCount: fhuCount,\n            color: '#FF2D92'\n          }\n        ]\n      }\n    });\n    \n    console.log(`✅ Processed month ${month} (${row.month_name}): ${totalAmount} zł [P:${privateAmount}, M:${mtHubAmount}, F:${fhuAmount}]`);\n  } else {\n    // Brak danych - puste wartości\n    monthsData.push({\n      month: month,\n      monthName: monthNames[month - 1],\n      data: {\n        monthlyExpenses: 0,\n        expenseCategories: [\n          { name: 'Prywatne', amount: 0, transactionCount: 0, color: '#34C759' },\n          { name: 'MT HUB', amount: 0, transactionCount: 0, color: '#007AFF' },\n          { name: 'FHU', amount: 0, transactionCount: 0, color: '#FF2D92' }\n        ]\n      }\n    });\n    \n    console.log(`⚪ Empty month ${month} (${monthNames[month - 1]})`);\n  }\n}\n\nconsole.log('\\n=== FINAL SUCCESS ===');\nconsole.log(`🎉 Successfully prepared data for ${monthsData.length} months (${requestedYear})`);\n\n// Podsumowanie danych\nconst totalExpenses = monthsData.reduce((sum, month) => sum + month.data.monthlyExpenses, 0);\nconst monthsWithData = monthsData.filter(month => month.data.monthlyExpenses > 0).length;\nconsole.log(`📊 Total yearly expenses: ${totalExpenses} zł`);\nconsole.log(`📊 Months with data: ${monthsWithData}/${monthsData.length}`);\n\n// ✅ POPRAWKA: Zwracamy dane w formacie oczekiwanym przez n8n\n// Opcja 1: Jeśli chcesz zwrócić wszystkie miesiące jako jeden obiekt\nreturn [{\n  json: {\n    year: requestedYear,\n    months: monthsData,\n    summary: {\n      totalExpenses: totalExpenses,\n      monthsWithData: monthsWithData,\n      totalMonths: monthsData.length\n    }\n  }\n}];\n\n// Opcja 2: Jeśli chcesz zwrócić każdy miesiąc jako osobny item (odkomentuj poniższe, zakomentuj powyższe)\n// return monthsData.map(monthData => ({\n//   json: monthData\n// }));"
+      },
+      "id": "cc4773e3-68ad-471e-bbfe-1ef5abe6b42e",
+      "name": "Process Yearly Data (FAST)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        512,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "headers.Access-Control-Allow-Origin",
+              "value": "*",
+              "type": "string"
+            },
+            {
+              "name": "headers.Access-Control-Allow-Methods",
+              "value": "GET, POST, OPTIONS, PUT, DELETE",
+              "type": "string"
+            },
+            {
+              "name": "headers.Access-Control-Allow-Headers",
+              "value": "Content-Type, Accept, Authorization, X-Requested-With",
+              "type": "string"
+            },
+            {
+              "name": "headers.Access-Control-Allow-Credentials",
+              "value": "true",
+              "type": "string"
+            },
+            {
+              "name": "headers.Access-Control-Max-Age",
+              "value": "86400",
+              "type": "string"
+            },
+            {
+              "name": "headers.Content-Type",
+              "value": "application/json",
+              "type": "string"
+            },
+            {
+              "name": "headers.Cache-Control",
+              "value": "public, max-age=1800",
+              "type": "string"
+            },
+            {
+              "name": "data",
+              "value": "={{ $json }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b0ddca55-9592-4355-bf62-2b3940619ddc",
+      "name": "Set Headers (Fast Cache)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        720,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.data }}",
+        "options": {
+          "responseCode": "={{ $json.data.error ? 500 : 200 }}",
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Cache-Control",
+                "value": "public, max-age=1800"
+              }
+            ]
+          }
+        }
+      },
+      "id": "427c0eec-d69b-447d-a23d-0ea7f834e1cc",
+      "name": "Respond Fast Yearly",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        928,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Webhook Yearly Fast').item.json.httpMethod }}",
+                    "rightValue": "OPTIONS",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "9b78e699-54d5-433c-b986-c2bebf7ed98f"
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "id": "6e6f16ad-6e72-4117-924b-736f48ed2e3b",
+      "name": "Check HTTP Method1",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -288,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "noData",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Access-Control-Allow-Methods",
+                "value": "GET, POST, OPTIONS, PUT, DELETE"
+              },
+              {
+                "name": "Access-Control-Allow-Headers",
+                "value": "Content-Type, Accept, Authorization, X-Requested-With"
+              },
+              {
+                "name": "Access-Control-Max-Age",
+                "value": "86400"
+              }
+            ]
+          }
+        }
+      },
+      "id": "310c14d6-3700-4e2e-aaab-7c166dbedafe",
+      "name": "OPTIONS Response1",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -80,
+        -80
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook Yearly Fast": {
+      "main": [
+        [
+          {
+            "node": "Check HTTP Method1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Yearly Params": {
+      "main": [
+        [
+          {
+            "node": "Get Yearly Data (SUPER FAST)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge Yearly Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Yearly Data (SUPER FAST)": {
+      "main": [
+        [
+          {
+            "node": "Merge Yearly Data",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Yearly Data": {
+      "main": [
+        [
+          {
+            "node": "Process Yearly Data (FAST)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Yearly Data (FAST)": {
+      "main": [
+        [
+          {
+            "node": "Set Headers (Fast Cache)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Headers (Fast Cache)": {
+      "main": [
+        [
+          {
+            "node": "Respond Fast Yearly",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check HTTP Method1": {
+      "main": [
+        [
+          {
+            "node": "OPTIONS Response1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Parse Yearly Params",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1ab94e56-a8f3-4ce2-887f-42291e9c15e3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bf72b9fcc7a9ac2b514d2ba3ec6fb953375a71d78fa918c9013d959f21219785"
+  },
+  "id": "9UPFEpTiWy7tU43Z",
+  "tags": []
+}
