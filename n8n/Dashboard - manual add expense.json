@@ -1,0 +1,211 @@
+{
+  "name": "Dashboard - manual add expense",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "dashboard-add-expense",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -400,
+        -32
+      ],
+      "id": "7e0ad201-b175-46f2-bade-a458201509ac",
+      "name": "Webhook",
+      "webhookId": "f522ef26-7d92-4268-b83e-7f1e80d347dc"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "55f9bfd7-2583-4b2b-a3f1-4c54ed50e50d",
+              "leftValue": "={{ $json.isValid }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        16,
+        -32
+      ],
+      "id": "4b4963f2-08d7-489c-98fc-a874f6c34fc5",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "tableId": "detailed_expenses",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "expense_date",
+              "fieldValue": "={{ $('Code - Validate & Process Data').item.json.expenseData.expense_date }}"
+            },
+            {
+              "fieldId": "category",
+              "fieldValue": "={{ $('Code - Validate & Process Data').item.json.expenseData.category }}"
+            },
+            {
+              "fieldId": "subcategory",
+              "fieldValue": "={{ $('Code - Validate & Process Data').item.json.expenseData.subcategory }}"
+            },
+            {
+              "fieldId": "amount",
+              "fieldValue": "={{ $('Code - Validate & Process Data').item.json.expenseData.amount }}"
+            },
+            {
+              "fieldId": "description",
+              "fieldValue": "={{ $('Code - Validate & Process Data').item.json.expenseData.description }}"
+            },
+            {
+              "fieldId": "created_at",
+              "fieldValue": "={{ $('Code - Validate & Process Data').item.json.expenseData.created_at }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        224,
+        -128
+      ],
+      "id": "424cf300-91f9-4be1-80fb-80dd3d702c0c",
+      "name": "Create a row",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "pNSSt5wAQlRfIO2r",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pobierz dane z webhook\nconst body = $input.all()[0].json.body;\n\n// Funkcja walidacji\nfunction validateExpenseData(data) {\n  const errors = [];\n  \n  // Sprawdź wymagane pola\n  if (!data.category || data.category.trim() === '') {\n    errors.push('Category is required');\n  }\n  \n  if (!data.amount || isNaN(parseFloat(data.amount)) || parseFloat(data.amount) <= 0) {\n    errors.push('Valid amount is required');\n  }\n  \n  if (!data.date) {\n    errors.push('Date is required');\n  }\n  \n  // Sprawdź format daty\n  if (data.date && isNaN(new Date(data.date).getTime())) {\n    errors.push('Invalid date format');\n  }\n  \n  return {\n    isValid: errors.length === 0,\n    errors: errors\n  };\n}\n\n// Walidacja danych\nconst validation = validateExpenseData(body);\n\nif (!validation.isValid) {\n  return {\n    isValid: false,\n    errors: validation.errors,\n    message: 'Validation failed: ' + validation.errors.join(', ')\n  };\n}\n\n// Przygotowanie danych dla Supabase\nconst expenseData = {\n  expense_date: body.date,\n  category: body.category,\n  subcategory: body.subcategory || body.company || null,\n  amount: parseFloat(body.amount),\n  description: body.description || '',\n  folder_id: null, // Ustaw według potrzeb\n  created_at: new Date().toISOString()\n};\n\n// Mapowanie kategorii na format z bazy\nif (body.category === 'Prywatne') {\n  expenseData.category = 'Prywatne';\n  expenseData.subcategory = body.subcategory || 'Inne';\n} else if (body.category === 'Firmowe') {\n  if (body.company === 'MT HUB') {\n    expenseData.category = 'MT HUB';\n    expenseData.subcategory = 'MT_HUB';\n  } else if (body.company === 'FHU') {\n    expenseData.category = 'FHU';\n    expenseData.subcategory = 'FHU';\n  }\n}\n\nreturn {\n  isValid: true,\n  expenseData: expenseData,\n  originalData: body\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -192,
+        -32
+      ],
+      "id": "033c763b-92ee-4c86-b6a0-bb83e8d25b87",
+      "name": "Code - Validate & Process Data"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"message\": \"Wydatek został dodany pomyślnie\",\n  \"data\": {\n    \"amount\": \"{{ $('Code - Validate & Process Data').item.json.expenseData.amount }}\",\n    \"category\": \"{{ $('Code - Validate & Process Data').item.json.expenseData.category }}\",\n    \"date\": \"{{ $('Code - Validate & Process Data').item.json.expenseData.expense_date }}\"\n  },\n  \"timestamp\": \"{{ new Date().toISOString() }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        640,
+        -224
+      ],
+      "id": "372e55cf-6998-4fde-865d-c2d060828301",
+      "name": "Respond to true"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": false,\n  \"message\": \"{{ $('Code - Validate & Process Data').item.json.message }}\",\n  \"timestamp\": \"{{ new Date().toISOString() }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        640,
+        -32
+      ],
+      "id": "8c96260b-3da6-49c2-bc06-84eaec84ee22",
+      "name": "Respond to error"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code - Validate & Process Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Create a row",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a row": {
+      "main": [
+        [
+          {
+            "node": "Respond to true",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Validate & Process Data": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "aff3ee31-7995-40a8-8810-0011fe972d49",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bf72b9fcc7a9ac2b514d2ba3ec6fb953375a71d78fa918c9013d959f21219785"
+  },
+  "id": "Sfh5Av6zgMks2X6M",
+  "tags": []
+}
