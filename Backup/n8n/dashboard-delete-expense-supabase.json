@@ -1,0 +1,206 @@
+{
+  "name": "dashboard-delete-expense-supabase",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "DELETE",
+        "path": "dashboard-delete-expense",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "dace48bf-f762-40d8-8711-3c7c0382b5b1",
+      "name": "Webhook Delete",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        -1760,
+        64
+      ],
+      "webhookId": "5525918b-2251-42d5-bbc3-4971cd57a099"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pobierz dane z body\nconst body = $input.first().json.body || {};\nconst headers = $input.first().json.headers || {};\n\nconsole.log('Delete request body:', body);\n\n// Sprawdź Content-Type\nconst contentType = headers['content-type'] || '';\nif (!contentType.includes('application/json')) {\n    return [{\n        json: {\n            isValid: false,\n            error: 'Invalid Content-Type',\n            message: 'Wymagany Content-Type: application/json'\n        }\n    }];\n}\n\n// Pobierz ID wydatku - UŻYWAJ TIMESTAMP jako głównego identyfikatora\nlet expenseId = null;\nlet identifierType = 'unknown';\n\n// Próbuj użyć timestamp (najbardziej niezawodny)\nif (body.timestamp) {\n    expenseId = body.timestamp;\n    identifierType = 'timestamp';\n} else if (body.created_at) {\n    expenseId = body.created_at;\n    identifierType = 'created_at';\n} else if (body.id && typeof body.id === 'number') {\n    expenseId = body.id;\n    identifierType = 'supabase_id';\n} else if (body.id && typeof body.id === 'string' && !isNaN(parseInt(body.id))) {\n    expenseId = parseInt(body.id);\n    identifierType = 'string_id';\n} else {\n    return [{\n        json: {\n            isValid: false,\n            error: 'Missing ID',\n            message: 'Brak wymaganego ID wydatku (potrzebny timestamp lub id)'\n        }\n    }];\n}\n\nconsole.log('Expense ID:', expenseId, 'Type:', identifierType);\n\nreturn [{\n    json: {\n        isValid: true,\n        expenseId: expenseId,\n        identifierType: identifierType,\n        originalBody: body,\n        clientInfo: {\n            userAgent: headers['user-agent'] || 'Unknown',\n            ip: headers['x-forwarded-for'] || 'Unknown'\n        }\n    }\n}];"
+      },
+      "id": "d9f1c6f2-9b8a-4729-91e4-e4dc385ee60c",
+      "name": "Validate Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1536,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.isValid }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "bdee68fc-7f30-4011-ae41-578076a554a8",
+      "name": "Check Valid",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -1312,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "tableId": "detailed_expenses",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "created_at",
+              "condition": "eq",
+              "keyValue": "={{ $json.expenseId }}"
+            }
+          ]
+        }
+      },
+      "id": "de7e95a8-d4da-4ce8-a51b-30170d95d4e3",
+      "name": "Delete from Supabase",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -1104,
+        -16
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "pNSSt5wAQlRfIO2r",
+          "name": "Supabase account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {\n  \"success\": true,\n  \"message\": \"Wydatek został pomyślnie usunięty\",\n  \"deletedId\": $('Validate Request').item.json.expenseId,\n  \"rowsAffected\": $json.length || 0\n} }}",
+        "options": {}
+      },
+      "id": "04d19ef5-92fa-49d1-8928-5b37161f1ab0",
+      "name": "Success Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        -656,
+        -112
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {\n  \"success\": false,\n  \"error\": $json.error || \"Błąd walidacji\",\n  \"message\": $json.message || \"Nieprawidłowe żądanie\"\n} }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "24fdc06a-34f6-4e87-a60c-0920d159191b",
+      "name": "Error Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        -1104,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {\n  \"success\": false,\n  \"error\": $json.error || \"Błąd walidacji\",\n  \"message\": $json.message || \"Nieprawidłowe żądanie\"\n} }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "283f6030-e646-45d4-94a9-80eaf3db79d5",
+      "name": "Error Response1",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        -816,
+        64
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook Delete": {
+      "main": [
+        [
+          {
+            "node": "Validate Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Request": {
+      "main": [
+        [
+          {
+            "node": "Check Valid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Valid": {
+      "main": [
+        [
+          {
+            "node": "Delete from Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete from Supabase": {
+      "main": [
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Response1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "54c9e3b3-805c-422c-8880-ebfb151dc9c1",
+  "meta": {
+    "instanceId": "bf72b9fcc7a9ac2b514d2ba3ec6fb953375a71d78fa918c9013d959f21219785"
+  },
+  "id": "lR7SAqGLejt7I0W8",
+  "tags": []
+}

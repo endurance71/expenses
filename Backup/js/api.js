@@ -130,6 +130,43 @@ class APIService {
         }
     }
     
+    // Delete expense
+    async deleteExpense(deleteData) {
+        const url = this.baseUrl + this.config.ENDPOINTS.DELETE_EXPENSE;
+        
+        // Obsłuż zarówno stary format (string/number) jak i nowy (obiekt)
+        let payload;
+        if (typeof deleteData === 'object') {
+            payload = deleteData;
+        } else {
+            // Stary format - konwertuj na obiekt
+            payload = {
+                id: deleteData,
+                timestamp: deleteData
+            };
+        }
+        
+        window.Utils.debugLog('Deleting expense with payload:', payload);
+        
+        try {
+            const response = await this.fetchWithRetry(url, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+            
+            const result = await response.json();
+            window.Utils.debugLog('Expense deleted successfully:', result);
+            return result;
+            
+        } catch (error) {
+            window.Utils.debugLog('Delete expense error:', error);
+            throw error;
+        }
+    }
+    
     // Generate empty year data
     generateEmptyYearData(year) {
         const currentDate = new Date();

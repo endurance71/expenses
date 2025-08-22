@@ -45,7 +45,7 @@ window.ExpenseFormManager = {
         const categoryButtons = document.querySelectorAll('.segment-button');
         categoryButtons.forEach(btn => {
             btn.addEventListener('click', () => {
-                HapticManager.selection();
+                window.HapticManager && window.HapticManager.selection();
                 categoryButtons.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 this.formState.category = btn.dataset.category;
@@ -60,7 +60,7 @@ window.ExpenseFormManager = {
         
         if (paymentCheckbox) {
             paymentCheckbox.addEventListener('change', (e) => {
-                HapticManager.selection();
+                window.HapticManager && window.HapticManager.selection();
                 this.formState.isPayment = e.target.checked;
                 if (e.target.checked && otherCheckbox) {
                     otherCheckbox.checked = false;
@@ -73,7 +73,7 @@ window.ExpenseFormManager = {
         
         if (otherCheckbox) {
             otherCheckbox.addEventListener('change', (e) => {
-                HapticManager.selection();
+                window.HapticManager && window.HapticManager.selection();
                 this.formState.isOther = e.target.checked;
                 if (e.target.checked && paymentCheckbox) {
                     paymentCheckbox.checked = false;
@@ -129,7 +129,7 @@ window.ExpenseFormManager = {
     // Show form
     show() {
         Utils.debugLog('💰 Opening add expense sheet');
-        HapticManager.medium();
+        window.HapticManager && window.HapticManager.medium();
         
         const sheet = document.getElementById('addExpenseSheet');
         const backdrop = document.getElementById('addExpenseBackdrop');
@@ -139,13 +139,14 @@ window.ExpenseFormManager = {
         // Reset form
         this.resetForm();
         
-        // Prevent body scroll when sheet is open
+        // Prevent body scroll when sheet is open - iOS PWA friendly
         document.body.style.overflow = 'hidden';
-        //document.body.style.position = 'fixed';
-        document.body.style.width = '100%';
-
-        //close category view
-        categoryViews.classList.add('hidden');
+        document.body.style.touchAction = 'none';
+        document.body.style.userSelect = 'none';
+        document.body.style.webkitUserSelect = 'none';
+        // Store scroll position for restoration
+        this._savedScrollY = window.scrollY;
+        
         // Show backdrop and sheet
         backdrop.classList.add('open');
         backdrop.style.background = 'rgba(0, 0, 0, 0.4)';
@@ -166,16 +167,22 @@ window.ExpenseFormManager = {
     // Hide form
     hide() {
         Utils.debugLog('💰 Closing add expense sheet');
-        HapticManager.light();
+        window.HapticManager && window.HapticManager.light();
         
         const sheet = document.getElementById('addExpenseSheet');
         const backdrop = document.getElementById('addExpenseBackdrop');
         const addBtn = document.getElementById('addExpenseTab');
         
-        // Restore body scroll
+        // Restore body scroll - iOS PWA friendly
         document.body.style.overflow = '';
-        document.body.style.position = '';
-        document.body.style.width = '';
+        document.body.style.touchAction = '';
+        document.body.style.userSelect = '';
+        document.body.style.webkitUserSelect = '';
+        // Restore scroll position if needed
+        if (this._savedScrollY !== undefined) {
+            window.scrollTo(0, this._savedScrollY);
+            this._savedScrollY = undefined;
+        }
         
         if (sheet) sheet.classList.remove('open');
         if (backdrop) backdrop.classList.remove('open');
@@ -234,7 +241,7 @@ window.ExpenseFormManager = {
     async handleSubmit(e) {
         e.preventDefault();
         Utils.debugLog('📤 Submitting expense');
-        HapticManager.medium();
+        window.HapticManager && window.HapticManager.medium();
         
         const submitBtn = document.querySelector('.submit-button');
         if (submitBtn) {
@@ -250,13 +257,20 @@ window.ExpenseFormManager = {
             // Gather form data
             const formData = this.gatherFormData();
             
-            Utils.debugLog('📊 Form data:', formData);
+            if (window.Utils && window.Utils.debugLog) {
+                window.Utils.debugLog('📊 Form data:', formData);
+            }
             
             // Send to API
+            if (!window.APIService) {
+                throw new Error('API Service not available');
+            }
             const result = await window.APIService.addExpense(formData);
             
             // Success feedback
-            HapticManager.success();
+            if (window.HapticManager) {
+                window.HapticManager.success();
+            }
             if (submitBtn) {
                 submitBtn.classList.add('success');
                 setTimeout(() => {
@@ -274,9 +288,15 @@ window.ExpenseFormManager = {
             }, 1500);
             
         } catch (error) {
-            Utils.debugLog('❌ Error submitting expense:', error);
-            HapticManager.error();
-            Utils.showError(error.message || 'Nie udało się dodać wydatku. Spróbuj ponownie.');
+            if (window.Utils && window.Utils.debugLog) {
+                window.Utils.debugLog('❌ Error submitting expense:', error);
+            }
+            if (window.HapticManager) {
+                window.HapticManager.error();
+            }
+            if (window.Utils && window.Utils.showError) {
+                window.Utils.showError(error.message || 'Nie udało się dodać wydatku. Spróbuj ponownie.');
+            }
             
             if (submitBtn) {
                 submitBtn.disabled = false;
@@ -289,7 +309,10 @@ window.ExpenseFormManager = {
         const amount = document.getElementById('amount').value;
         const date = document.getElementById('expenseDate').value;
         
-        if (!amount || parseFloat(amount) <= 0) {
+        // Replace comma with dot for parsing
+        const normalizedAmount = amount.replace(',', '.');
+        
+        if (!amount || parseFloat(normalizedAmount) <= 0) {
             Utils.showError('Proszę podać prawidłową kwotę');
             return false;
         }
@@ -334,10 +357,14 @@ window.ExpenseFormManager = {
     
     // Gather form data
     gatherFormData() {
+        // Normalize amount (replace comma with dot)
+        const rawAmount = document.getElementById('amount').value;
+        const normalizedAmount = rawAmount.replace(',', '.');
+        
         const formData = {
             category: this.formState.category,
             date: document.getElementById('expenseDate').value,
-            amount: parseFloat(document.getElementById('amount').value),
+            amount: parseFloat(normalizedAmount),
             timestamp: new Date().toISOString()
         };
         

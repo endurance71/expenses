@@ -44,6 +44,10 @@
     --ios-pink: #FF2D92;
     --ios-gray: #8E8E93;
     
+    /* Additional aliases for compatibility */
+    --blue: #007AFF;
+    --blue-dark: #0056CC;
+    
     /* System Background Colors */
     --system-background: #FFFFFF;
     --secondary-system-background: #F2F2F7;
@@ -516,9 +520,10 @@ body {
     transition: transform var(--duration-slow) var(--spring-timing);
     z-index: 1001;
     max-height: 90vh;
-    overflow: hidden;
+    overflow: hidden; /* Kontener nie przewija - tylko content wewnątrz */
     box-shadow: var(--shadow-4);
-    padding-bottom: calc(60px + max(34px, var(--safe-area-bottom)));
+    display: flex;
+    flex-direction: column;
 }
 
 .bottom-sheet.open {
@@ -570,8 +575,22 @@ body {
 .bottom-sheet-content {
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    max-height: calc(80vh - 180px);
-    padding: 0 var(--spacing-xl);
+    flex: 1;
+    padding: 0 var(--spacing-xl) calc(98px + var(--safe-area-bottom, 34px) + var(--spacing-lg)) var(--spacing-xl);
+    /* Zapewnia przewijanie tylko w content area */
+    overscroll-behavior: contain;
+    /* Lepsze touch scrolling na iOS */
+    -webkit-overflow-scrolling: touch;
+    /* Zapobiega zakrywaniu przez tab-bar */
+    margin-bottom: 0;
+}
+
+/* iOS PWA Standalone Mode - dodatkowe poprawki */
+@media (display-mode: standalone) {
+    .bottom-sheet {
+        /* Zmniejsz max-height dla PWA aby nie zakrywało tab-bar */
+        max-height: calc(100vh - 120px);
+    }
 }
 
 /* Backdrop */
@@ -585,14 +604,23 @@ body {
     z-index: 1000;
     opacity: 0;
     visibility: hidden;
+    pointer-events: none;
     transition: all var(--duration-normal) ease;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
+    /* Zapobiega przewijaniu na backdrop */
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    /* iOS PWA fixes */
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 .sheet-backdrop.open {
     opacity: 1;
     visibility: visible;
+    pointer-events: auto;
 }
 
 /* =================================
@@ -603,6 +631,7 @@ body {
     align-items: center;
     padding: var(--spacing-lg) 0;
     border-bottom: 0.33px solid var(--separator);
+    position: relative;
 }
 
 .transaction-item:last-child {
@@ -650,6 +679,586 @@ body {
     color: var(--label);
     text-align: right;
     font-variant-numeric: tabular-nums;
+    margin-right: var(--spacing-sm);
+}
+
+.transaction-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+/* Delete Button */
+.delete-expense-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    border: none;
+    background: var(--quaternary-system-fill);
+    color: var(--ios-red);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-out-timing);
+    -webkit-tap-highlight-color: transparent;
+    opacity: 0.7;
+}
+
+.delete-expense-btn:hover {
+    opacity: 1;
+    background: rgba(255, 69, 58, 0.1);
+}
+
+.delete-expense-btn:active {
+    transform: scale(0.95);
+    background: rgba(255, 69, 58, 0.2);
+}
+
+.delete-expense-btn svg {
+    width: 22px;
+    height: 22px;
+    stroke-width: 2;
+}
+
+/* =================================
+   Delete Confirmation Modal
+   ================================= */
+
+/* Modal backdrop */
+.delete-confirmation-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    padding: var(--spacing-lg) var(--spacing-lg) calc(var(--spacing-lg) + env(safe-area-inset-bottom));
+}
+
+.delete-confirmation-modal.open {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Backdrop blur */
+.delete-confirmation-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+
+/* Modal content */
+.delete-confirmation-content {
+    position: relative;
+    background: var(--grouped-background);
+    border-radius: 14px;
+    max-width: 300px;
+    width: 100%;
+    overflow: hidden;
+    transform: scale(0.8);
+    transition: transform 0.3s ease;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.delete-confirmation-modal.open .delete-confirmation-content {
+    transform: scale(1);
+}
+
+/* Header */
+.delete-confirmation-header {
+    padding: var(--spacing-lg) var(--spacing-lg) var(--spacing-md);
+    text-align: center;
+    border-bottom: 0.33px solid var(--separator);
+}
+
+.delete-confirmation-icon {
+    font-size: 32px;
+    margin-bottom: var(--spacing-sm);
+    line-height: 1;
+}
+
+.delete-confirmation-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--label);
+    margin: 0;
+}
+
+/* Body */
+.delete-confirmation-body {
+    padding: var(--spacing-lg);
+    text-align: center;
+}
+
+.delete-confirmation-text {
+    font-size: 13px;
+    color: var(--secondary-label);
+    margin: 0 0 var(--spacing-sm) 0;
+    line-height: 1.4;
+}
+
+.delete-confirmation-description {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--label);
+    margin: 0 0 var(--spacing-sm) 0;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--secondary-grouped-background);
+    border-radius: 8px;
+    word-break: break-word;
+}
+
+.delete-confirmation-warning {
+    font-size: 12px;
+    color: var(--destructive);
+    margin: 0;
+    font-weight: 500;
+}
+
+/* Actions */
+.delete-confirmation-actions {
+    display: flex;
+    border-top: 0.33px solid var(--separator);
+}
+
+.cancel-delete-btn,
+.confirm-delete-btn {
+    flex: 1;
+    height: 44px;
+    border: none;
+    background: none;
+    font-size: 17px;
+    font-weight: 400;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin: 0;
+    min-height: 44px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cancel-delete-btn {
+    color: var(--blue);
+    border-right: 0.33px solid var(--separator);
+    border-bottom-left-radius: 14px;
+}
+
+.cancel-delete-btn:hover {
+    background: var(--secondary-grouped-background);
+}
+
+.cancel-delete-btn:active {
+    background: var(--tertiary-grouped-background);
+}
+
+.confirm-delete-btn {
+    color: var(--destructive);
+    font-weight: 600;
+    border-bottom-right-radius: 14px;
+}
+
+.confirm-delete-btn:hover {
+    background: rgba(255, 59, 48, 0.1);
+}
+
+.confirm-delete-btn:active {
+    background: rgba(255, 59, 48, 0.2);
+}
+
+.confirm-delete-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+    .delete-confirmation-content {
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+    }
+    
+    .delete-confirmation-backdrop {
+        background: rgba(0, 0, 0, 0.6);
+    }
+}
+
+/* iOS specific optimizations */
+@supports (-webkit-touch-callout: none) {
+    .delete-confirmation-modal {
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+    }
+    
+    .delete-confirmation-content {
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+    }
+}
+
+/* Animation keyframes */
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes modalFadeOut {
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+}
+
+/* Loading state for confirm button */
+.confirm-delete-btn.loading {
+    color: transparent;
+}
+
+.confirm-delete-btn.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 16px;
+    height: 16px;
+    margin: -8px 0 0 -8px;
+    border: 2px solid var(--destructive);
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Haptic feedback enhancement */
+.delete-confirmation-modal.haptic-light {
+    animation: haptic-light 0.1s ease;
+}
+
+.delete-confirmation-modal.haptic-medium {
+    animation: haptic-medium 0.15s ease;
+}
+
+@keyframes haptic-light {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-1px); }
+    75% { transform: translateX(1px); }
+}
+
+@keyframes haptic-medium {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-2px); }
+    75% { transform: translateX(2px); }
+}
+
+/* =================================
+   Receipt Viewer Modal
+   ================================= */
+
+/* Modal backdrop */
+.receipt-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    padding: var(--spacing-md);
+}
+
+.receipt-modal.open {
+    opacity: 1;
+    visibility: visible;
+}
+
+.receipt-modal.closing {
+    opacity: 0;
+    transform: scale(0.9);
+}
+
+/* Backdrop */
+.receipt-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+
+/* Modal content */
+.receipt-content {
+    position: relative;
+    background: var(--grouped-background);
+    border-radius: 16px;
+    max-width: 90vw;
+    max-height: 90vh;
+    width: 100%;
+    overflow: hidden;
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+}
+
+.receipt-modal.open .receipt-content {
+    transform: scale(1);
+}
+
+/* Header */
+.receipt-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-lg);
+    border-bottom: 0.33px solid var(--separator);
+    background: var(--secondary-grouped-background);
+}
+
+.receipt-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--label);
+    margin: 0;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.receipt-close {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: var(--tertiary-grouped-background);
+    border-radius: 50%;
+    color: var(--secondary-label);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    margin-left: var(--spacing-md);
+}
+
+.receipt-close:hover {
+    background: var(--quaternary-grouped-background);
+    color: var(--label);
+}
+
+.receipt-close svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* Image container */
+.receipt-image-container {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    background: var(--secondary-grouped-background);
+}
+
+.receipt-image {
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 8px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    object-fit: contain;
+}
+
+/* Loading state */
+.receipt-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-md);
+    color: var(--secondary-label);
+    font-size: 14px;
+}
+
+.receipt-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--tertiary-label);
+    border-radius: 50%;
+    border-top-color: var(--blue);
+    animation: spin 1s linear infinite;
+}
+
+/* Actions */
+.receipt-actions {
+    display: flex;
+    gap: 0;
+    border-top: 0.33px solid var(--separator);
+}
+
+.receipt-download-btn,
+.receipt-share-btn {
+    flex: 1;
+    height: 50px;
+    border: none;
+    background: none;
+    color: var(--blue);
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    transition: background-color 0.2s ease;
+}
+
+.receipt-download-btn {
+    border-right: 0.33px solid var(--separator);
+}
+
+.receipt-download-btn:hover,
+.receipt-share-btn:hover {
+    background: var(--secondary-grouped-background);
+}
+
+.receipt-download-btn:active,
+.receipt-share-btn:active {
+    background: var(--tertiary-grouped-background);
+}
+
+.receipt-download-btn svg,
+.receipt-share-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* View receipt button - same style as delete button */
+.view-receipt-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    border: none;
+    background: var(--quaternary-system-fill);
+    color: var(--ios-blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-out-timing);
+    -webkit-tap-highlight-color: transparent;
+    opacity: 0.7;
+}
+
+.view-receipt-btn:hover {
+    opacity: 1;
+    background: rgba(0, 122, 255, 0.1);
+}
+
+.view-receipt-btn:active {
+    transform: scale(0.95);
+    background: rgba(0, 122, 255, 0.2);
+}
+
+.view-receipt-btn svg {
+    width: 22px;
+    height: 22px;
+    stroke-width: 2;
+}
+
+/* Transaction actions container */
+.transaction-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    min-height: 40px;
+}
+
+/* Mobile optimizations */
+@media (max-width: 480px) {
+    .receipt-content {
+        max-width: 95vw;
+        max-height: 95vh;
+        border-radius: 12px;
+    }
+    
+    .receipt-header {
+        padding: var(--spacing-md);
+    }
+    
+    .receipt-title {
+        font-size: 16px;
+    }
+    
+    .receipt-actions {
+        flex-direction: column;
+    }
+    
+    .receipt-download-btn,
+    .receipt-share-btn {
+        height: 44px;
+        border-right: none;
+        border-bottom: 0.33px solid var(--separator);
+    }
+    
+    .receipt-share-btn {
+        border-bottom: none;
+    }
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+    .receipt-backdrop {
+        background: rgba(0, 0, 0, 0.9);
+    }
+    
+    .receipt-content {
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+    }
 }
 
 /* =================================
@@ -971,7 +1580,7 @@ body {
    ================================= */
 .pull-to-refresh {
     position: absolute;
-    top: -60px;
+    top: 150px;
     left: 50%;
     transform: translateX(-50%);
     opacity: 0;
@@ -980,7 +1589,7 @@ body {
 
 .pull-to-refresh.active {
     opacity: 1;
-    transform: translateX(-50%) translateY(20px);
+    transform: translateX(-50%) translateY(30px);
 }
 
 .refresh-indicator {
@@ -1123,4 +1732,143 @@ input[type="tel"]#amount {
     background-position: right 12px center;
     background-size: 20px;
     padding-right: 40px;
+}
+
+/* =================================
+   Delete Confirmation Modal
+   ================================= */
+.delete-confirmation-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all var(--duration-normal) ease;
+}
+
+.delete-confirmation-modal.open {
+    opacity: 1;
+    visibility: visible;
+}
+
+.delete-confirmation-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.delete-confirmation-content {
+    position: relative;
+    background: var(--secondary-system-grouped-background);
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-4);
+    margin: var(--spacing-lg);
+    max-width: 320px;
+    width: 100%;
+    transform: scale(0.9);
+    transition: transform var(--duration-normal) var(--spring-timing);
+}
+
+.delete-confirmation-modal.open .delete-confirmation-content {
+    transform: scale(1);
+}
+
+.delete-confirmation-header {
+    text-align: center;
+    padding: var(--spacing-xl) var(--spacing-lg) var(--spacing-md);
+    border-bottom: 0.33px solid var(--separator);
+}
+
+.delete-confirmation-icon {
+    font-size: 48px;
+    margin-bottom: var(--spacing-md);
+}
+
+.delete-confirmation-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--label);
+    line-height: 1.3;
+}
+
+.delete-confirmation-body {
+    padding: var(--spacing-lg);
+    text-align: center;
+}
+
+.delete-confirmation-text {
+    font-size: 17px;
+    color: var(--label);
+    line-height: 1.4;
+    margin-bottom: var(--spacing-md);
+}
+
+.delete-confirmation-description {
+    font-size: 15px;
+    color: var(--secondary-label);
+    font-weight: 500;
+    background: var(--quaternary-system-fill);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--spacing-md);
+    font-style: italic;
+}
+
+.delete-confirmation-warning {
+    font-size: 13px;
+    color: var(--ios-red);
+    font-weight: 500;
+}
+
+.delete-confirmation-actions {
+    display: flex;
+    border-top: 0.33px solid var(--separator);
+    overflow: hidden;
+}
+
+.cancel-delete-btn,
+.confirm-delete-btn {
+    flex: 1;
+    padding: var(--spacing-lg);
+    border: none;
+    background: transparent;
+    font-size: 17px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--duration-fast) ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.cancel-delete-btn {
+    color: var(--ios-blue);
+    border-right: 0.33px solid var(--separator);
+}
+
+.cancel-delete-btn:active {
+    background: var(--quaternary-system-fill);
+}
+
+.confirm-delete-btn {
+    color: var(--ios-red);
+    font-weight: 600;
+}
+
+.confirm-delete-btn:active {
+    background: rgba(255, 69, 58, 0.1);
+}
+
+.confirm-delete-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }

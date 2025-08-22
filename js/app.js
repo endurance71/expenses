@@ -139,25 +139,50 @@ window.WydatkiApp = {
                 e.preventDefault();
                 e.stopPropagation();
                 
-                // Handle add expense button
+                // Handle add expense button FIRST before closing other modals
                 if (item.id === 'addExpenseTab') {
-                    const sheet = document.getElementById('addExpenseSheet');
-                    if (sheet && sheet.classList.contains('open')) {
-                        // Sheet is already open, don't do anything
-                        return;
-                    }
+                    // Check if expense form is already open
+                    const addExpenseSheet = document.getElementById('addExpenseSheet');
+                    const isOpen = addExpenseSheet && addExpenseSheet.classList.contains('open');
                     
-                    if (window.ExpenseFormManager) {
-                        window.ExpenseFormManager.show();
+                    if (isOpen) {
+                        // If open, close it
+                        if (window.ExpenseFormManager) {
+                            window.ExpenseFormManager.hide();
+                        }
+                    } else {
+                        // If closed, close other modals first, then open expense form
+                        const transactionSheet = document.getElementById('transactionSheet');
+                        if (transactionSheet && transactionSheet.classList.contains('open')) {
+                            if (window.DashboardManager) {
+                                window.DashboardManager.hideBottomSheet();
+                            }
+                        }
+                        
+                        setTimeout(() => {
+                            if (window.ExpenseFormManager) {
+                                window.ExpenseFormManager.show();
+                            }
+                        }, 100);
                     }
                     return;
                 }
                 
-                // Close add expense form if open
+                // Close any open modals for other buttons
                 const addExpenseSheet = document.getElementById('addExpenseSheet');
+                const transactionSheet = document.getElementById('transactionSheet');
+                
+                // Close add expense form if open
                 if (addExpenseSheet && addExpenseSheet.classList.contains('open')) {
                     if (window.ExpenseFormManager) {
                         window.ExpenseFormManager.hide();
+                    }
+                }
+                
+                // Close transaction sheet if open  
+                if (transactionSheet && transactionSheet.classList.contains('open')) {
+                    if (window.DashboardManager) {
+                        window.DashboardManager.hideBottomSheet();
                     }
                 }
                 
@@ -244,6 +269,16 @@ window.WydatkiApp = {
         if (window.ExpenseFormManager) {
             window.ExpenseFormManager.init();
         }
+        
+        // Initialize expense delete manager
+        if (window.ExpenseDeleteManager) {
+            window.ExpenseDeleteManager.init();
+        }
+        
+        // Initialize receipt viewer
+        if (window.ReceiptViewer) {
+            window.ReceiptViewer.init();
+        }
     },
     
     // Load initial data
@@ -279,7 +314,7 @@ window.WydatkiApp = {
         }
         
         Utils.debugLog('🔄 Refreshing data...');
-        HapticManager.medium();
+        window.HapticManager && window.HapticManager.medium();
         
         this.state.isLoading = true;
         
@@ -301,7 +336,7 @@ window.WydatkiApp = {
                 window.YearlyChartManager.refresh();
             }
             
-            HapticManager.success();
+            window.HapticManager && window.HapticManager.success();
             Utils.debugLog('✅ Data refreshed successfully');
             
             // Save last refresh time
@@ -309,7 +344,7 @@ window.WydatkiApp = {
             
         } catch (error) {
             Utils.debugLog('❌ Failed to refresh data:', error);
-            HapticManager.error();
+            window.HapticManager && window.HapticManager.error();
             Utils.showError('Nie można odświeżyć danych');
         } finally {
             this.state.isLoading = false;
@@ -319,7 +354,7 @@ window.WydatkiApp = {
     // Handle date change
     onDateChange() {
         Utils.debugLog('📅 Date changed');
-        HapticManager.selection();
+        window.HapticManager && window.HapticManager.selection();
         this.refreshData();
     },
     
@@ -354,7 +389,7 @@ window.WydatkiApp = {
             
             if (pullDistance > PULL_THRESHOLD && !pullIndicator.classList.contains('active')) {
                 pullIndicator.classList.add('active');
-                HapticManager.light();
+                window.HapticManager && window.HapticManager.light();
             }
             
             const resistance = Math.min(pullDistance * 0.3, MAX_PULL_DISTANCE * 0.3);
@@ -366,7 +401,7 @@ window.WydatkiApp = {
             
             if (pullDistance > PULL_THRESHOLD && !isRefreshing) {
                 isRefreshing = true;
-                HapticManager.medium();
+                window.HapticManager && window.HapticManager.medium();
                 
                 setTimeout(async () => {
                     await this.refreshData();

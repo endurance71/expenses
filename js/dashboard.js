@@ -261,7 +261,9 @@ window.DashboardManager = {
     // Show dashboard view
     showDashboard() {
         Utils.debugLog('🏠 Showing dashboard');
-        HapticManager.light();
+        if (window.HapticManager) {
+            window.HapticManager.light();
+        }
         
         this.currentView = 'dashboard';
         this.currentCategory = null;
@@ -294,7 +296,9 @@ window.DashboardManager = {
     // Show category view
     showCategoryView(category) {
         Utils.debugLog(`📊 Showing category: ${category}`);
-        HapticManager.light();
+        if (window.HapticManager) {
+            window.HapticManager.light();
+        }
         
         this.currentView = 'category';
         this.currentCategory = category;
@@ -344,10 +348,13 @@ window.DashboardManager = {
         backdrop.style.backdropFilter = 'blur(10px)';
         backdrop.style.webkitBackdropFilter = 'blur(10px)';
         
-        // Block body scroll
+        // Block body scroll - iOS PWA friendly
         document.body.style.overflow = 'hidden';
-        //document.body.style.position = 'fixed';
-        document.body.style.width = '100%';
+        document.body.style.touchAction = 'none';
+        document.body.style.userSelect = 'none';
+        document.body.style.webkitUserSelect = 'none';
+        // Store scroll position for restoration
+        this._savedScrollY = window.scrollY;
         
         sheetTitle.textContent = `${title} - Transakcje`;
         
@@ -374,6 +381,9 @@ window.DashboardManager = {
                     <div class="transaction-amount">
                         ${Utils.formatCurrency(transaction.amount || 0)}
                     </div>
+                    <div class="transaction-actions">
+                        ${window.ExpenseDeleteManager ? window.ExpenseDeleteManager.createActionButtons(transaction) : ''}
+                    </div>
                 </div>
             `).join('');
         }
@@ -384,7 +394,9 @@ window.DashboardManager = {
             sheet.classList.add('open');
         });
         
-        HapticManager.light();
+        if (window.HapticManager) {
+            window.HapticManager.light();
+        }
     },
     
     // Hide bottom sheet
@@ -392,15 +404,23 @@ window.DashboardManager = {
         const sheet = document.getElementById('transactionSheet');
         const backdrop = document.getElementById('sheetBackdrop');
         
-        // Restore body scroll
+        // Restore body scroll - iOS PWA friendly
         document.body.style.overflow = '';
-        document.body.style.position = '';
-        document.body.style.width = '';
+        document.body.style.touchAction = '';
+        document.body.style.userSelect = '';
+        document.body.style.webkitUserSelect = '';
+        // Restore scroll position if needed
+        if (this._savedScrollY !== undefined) {
+            window.scrollTo(0, this._savedScrollY);
+            this._savedScrollY = undefined;
+        }
         
         if (sheet) sheet.classList.remove('open');
         if (backdrop) backdrop.classList.remove('open');
         
-        HapticManager.light();
+        if (window.HapticManager) {
+            window.HapticManager.light();
+        }
     },
     
     // Update tab bar

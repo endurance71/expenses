@@ -9,7 +9,8 @@ window.APP_CONFIG = {
         ENDPOINTS: {
             DASHBOARD: '/dashboard-wydatki',
             YEARLY: '/dashboard-wydatki-yearly',
-            ADD_EXPENSE: '/dashboard-add-expense'
+            ADD_EXPENSE: '/dashboard-add-expense',
+            DELETE_EXPENSE: '/dashboard-delete-expense'
         },
         TIMEOUT: 10000,
         RETRY_ATTEMPTS: 3,
@@ -64,8 +65,8 @@ window.APP_CONFIG = {
             NORMAL: 300,
             SLOW: 500
         },
-        PULL_TO_REFRESH_THRESHOLD: 140,
-        MAX_PULL_DISTANCE: 180,
+        PULL_TO_REFRESH_THRESHOLD: 100,
+        MAX_PULL_DISTANCE: 120,
         HAPTIC_ENABLED: true
     },
     

@@ -1,0 +1,33 @@
+# Security - Never commit API keys and secrets
+**/config.local.js
+**/credentials.json
+**/*-credentials.*
+**/*-config-private.*
+.env
+.env.local
+.env.production
+.env.development
+
+# System files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Node.js (if applicable)
+node_modules/
+npm-debug.log*
+
+# Backup files with sensitive data
+backup/*-with-credentials.*
+Backup/*-with-credentials.*

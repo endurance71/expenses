@@ -1,0 +1,4 @@
+{
+  "fieldId": "receipt_image_url",
+  "fieldValue": "={{ $('Upload to Cloudinary').item.json.secure_url }}"
+}

@@ -9,7 +9,8 @@ window.APP_CONFIG = {
         ENDPOINTS: {
             DASHBOARD: '/dashboard-wydatki',
             YEARLY: '/dashboard-wydatki-yearly',
-            ADD_EXPENSE: '/dashboard-add-expense'
+            ADD_EXPENSE: '/dashboard-add-expense',
+            DELETE_EXPENSE: '/dashboard-delete-expense'
         },
         TIMEOUT: 10000,
         RETRY_ATTEMPTS: 3,

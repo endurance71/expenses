@@ -119,3 +119,41 @@ id,expense_date,category,subcategory,amount,description,folder_id,created_at
 428,2025-08-13,Prywatne,Odzież,229.55,NEW YORKER POLSKA Koszalin,1NjEOGXI2DEwRitQB6YeWibGfC57GuJcR,2025-08-13 15:51:56+00
 429,2025-08-13,Prywatne,inne,185.97,"TJX Poland Sp. z o.o., Koszalin",1NjEOGXI2DEwRitQB6YeWibGfC57GuJcR,2025-08-13 15:52:23+00
 430,2025-08-13,Prywatne,Żywność,74.00,PIZZERIA UNO 3,1NjEOGXI2DEwRitQB6YeWibGfC57GuJcR,2025-08-14 07:31:37+00
+431,2025-08-14,Prywatne,inne,95.37,Action Poland sp. z o.o. Koszalin,1NjEOGXI2DEwRitQB6YeWibGfC57GuJcR,2025-08-14 11:11:03+00
+432,2025-08-14,FHU,FHU,43.46,Action Poland sp. z o.o.,1DFdc6hclwUvoR-odXauK2UWPXusvTQos,2025-08-14 11:12:07+00
+433,2025-08-14,Prywatne,Żywność,241.60,Biedronka,1NjEOGXI2DEwRitQB6YeWibGfC57GuJcR,2025-08-14 11:30:33+00
+434,2025-08-14,Prywatne,Żywność,114.00,Restauracja Przystań,1NjEOGXI2DEwRitQB6YeWibGfC57GuJcR,2025-08-14 12:41:14+00
+435,2025-08-14,Prywatne,Żywność,22.00,Paprota Rafał Paprota - Mały Lód Świderek 2 szt.,1NjEOGXI2DEwRitQB6YeWibGfC57GuJcR,2025-08-14 13:12:22+00
+436,2025-08-14,Prywatne,inne,245.97,"HalfPrice, Koszalin, ul. Jana Pawła II 20",1NjEOGXI2DEwRitQB6YeWibGfC57GuJcR,2025-08-14 14:49:32+00
+437,2025-08-14,FHU,FHU,69.96,Leroy Merlin Koszalin,1DFdc6hclwUvoR-odXauK2UWPXusvTQos,2025-08-14 16:48:06+00
+448,2025-08-14,FHU,FHU,163.00,Opłata Dochodowy,,2025-08-14 16:44:56.447+00
+449,2025-08-14,FHU,FHU,12446.00,Opłata VAT,,2025-08-14 16:46:38.808+00
+450,2025-08-14,Prywatne,Internet,40.00,Internet,,2025-08-14 16:49:21.186+00
+451,2025-08-14,Prywatne,Rata bik,432.00,Rata bik,,2025-08-14 16:50:14.751+00
+452,2025-08-14,Prywatne,Żywność,108.93,Lidl Koszalińska 3,1NjEOGXI2DEwRitQB6YeWibGfC57GuJcR,2025-08-14 17:52:53+00
+453,2025-07-01,MT HUB,MT_HUB,1299.93,Okresowa opłata leasingowa za 07-2025 zgodnie z umową nr PS23/02676,172YjNf2ixkLF6w-V91ZRmUwAsEefpasc,2025-08-14 17:53:27+00
+454,2025-07-11,MT HUB,MT_HUB,49329.00,VEHIS Finanse sp. z o.o.,172YjNf2ixkLF6w-V91ZRmUwAsEefpasc,2025-08-14 17:53:48+00
+455,2025-07-31,MT HUB,MT_HUB,232.47,IFIRMA - Usługa księgowa - rozliczenie miesiąca 6-2025,172YjNf2ixkLF6w-V91ZRmUwAsEefpasc,2025-08-14 17:54:12+00
+456,2025-08-21,MT HUB,MT_HUB,640.22,VEHIS - Opłata Administracyjna i rejestracyjna,1BrZjYl3lKs0uZVKmg76emsvaxgnibKwz,2025-08-14 17:58:24+00
+457,2025-08-21,MT HUB,MT_HUB,4283.18,Rata leasingowa i ubezpieczenie pojazdu,1BrZjYl3lKs0uZVKmg76emsvaxgnibKwz,2025-08-14 17:58:47+00
+458,2025-08-01,MT HUB,MT_HUB,1294.12,Okresowa opłata leasingowa za 08-2025 zgodnie z umową nr PS23/02676,1BrZjYl3lKs0uZVKmg76emsvaxgnibKwz,2025-08-14 17:59:08+00
+459,2025-08-11,MT HUB,MT_HUB,716.25,PKO Leasing S.A. - Składka ubezpieczeniowa,1BrZjYl3lKs0uZVKmg76emsvaxgnibKwz,2025-08-14 17:59:48+00
+460,2025-08-14,MT HUB,MT HUB,315.00,Opłata ZUS,,2025-08-14 17:00:56.669+00
+461,2025-08-14,Prywatne,Mieszkanie,3040.00,Opłata Mieszkanie,,2025-08-14 17:40:43.927+00
+462,2025-08-14,Prywatne,YouTube,60.00,Opłata Subskrypcje,,2025-08-14 17:41:06.924+00
+463,2025-08-14,Prywatne,iCloud,50.00,Opłata Subskrypcje,,2025-08-14 17:41:32.443+00
+464,2025-08-14,Prywatne,Netflix,30.00,Opłata Subskrypcje,,2025-08-14 17:41:48.176+00
+465,2025-08-14,Prywatne,Maxx,50.00,Opłata Subskrypcje,,2025-08-14 17:42:11.921+00
+466,2025-08-14,Prywatne,Apple Music,22.00,Opłata Subskrypcje,,2025-08-14 17:42:48.88+00
+467,2025-08-14,Prywatne,Żywność,59.20,Restauracje McDonald's Koszalin Autohof,1VMOLdLxer_SO826l3kBlgAEySVk81qZ1,2025-08-14 21:09:40+00
+468,2025-08-16,Prywatne,Żywność,290.34,Biedronka Koszalin ul. Holenderska 72,1VMOLdLxer_SO826l3kBlgAEySVk81qZ1,2025-08-16 20:09:27+00
+469,2025-08-17,Prywatne,Żywność,40.00,Paprotar - Gofr z bitą śmietaną,1VMOLdLxer_SO826l3kBlgAEySVk81qZ1,2025-08-17 19:10:35+00
+470,2025-08-14,MT HUB,MT_HUB,266.84,AWIM S.A. Stacja Paliw NOVA nr 744 Koszalin,11tkxwWSSLShhtOmp-ePGf9heUeNaGstf,2025-08-18 10:25:37+00
+471,2025-08-18,FHU,FHU,17.11,"TIDY ZBIGNIEW GRAB, DANUTA GRAB SPÓŁKA JAWNA",1Z4wPrgSDbgZNu6f34cBPTxRT3sdv9FSH,2025-08-18 10:26:16+00
+472,2025-08-18,Prywatne,Żywność,59.40,Restauracje McDonald's Koszalin Autohof,1VMOLdLxer_SO826l3kBlgAEySVk81qZ1,2025-08-18 12:06:00+00
+473,2025-08-18,Prywatne,inne,229.86,"ROSSMANN SDP SP Z O.O., Sklep nr 1080, ul. Paderewskiego 1, 75-736 Koszalin",1VMOLdLxer_SO826l3kBlgAEySVk81qZ1,2025-08-18 19:59:29+00
+474,2025-08-18,Prywatne,Pozostałe,400.00,Duperele,,2025-08-18 19:00:29.263+00
+475,2025-08-18,Prywatne,Żywność,41.90,Restauracje McDonald's Koszalin Autohof ul. Karola Mytnika 7,1VMOLdLxer_SO826l3kBlgAEySVk81qZ1,2025-08-18 22:25:00+00
+476,2025-08-19,Prywatne,Odzież,174.70,New Yorker Polska Sp.z o.o. FILIA: OTO PARK KOSZALIN,1VMOLdLxer_SO826l3kBlgAEySVk81qZ1,2025-08-19 14:23:38+00
+477,2025-08-20,Prywatne,Żywność,97.02,Biedronka,1VMOLdLxer_SO826l3kBlgAEySVk81qZ1,2025-08-20 12:53:28+00
+478,2025-08-21,FHU,FHU,5.99,LEROY MERLIN KOSZALIN,1Z4wPrgSDbgZNu6f34cBPTxRT3sdv9FSH,2025-08-21 08:30:07+00
