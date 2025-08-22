@@ -1,0 +1,1294 @@
+{
+  "name": "optimize_add_files",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "const now = new Date();\nconst monthNames = ['Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'];\n\nconst year = now.getFullYear().toString();\nconst monthNumber = String(now.getMonth() + 1).padStart(2, '0');\nconst monthName = monthNames[now.getMonth()];\nconst monthFolder = monthNumber + ' - ' + monthName;\n\nconst folderStructure = {\n  year: year,\n  monthNumber: monthNumber,\n  monthName: monthName,\n  monthFolder: monthFolder,\n  timestamp: now.toISOString()\n};\n\nreturn [{ json: folderStructure }];"
+      },
+      "id": "9b61e040-fe78-4c3e-854f-629780eb3826",
+      "name": "Prepare Folder Structure",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -4336,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "searchMethod": "query",
+        "queryString": "name=\"Rachunki\"",
+        "filter": {
+          "includeTrashed": false
+        },
+        "options": {}
+      },
+      "id": "e9f77e30-6a48-4f5a-a448-f6e95f23322f",
+      "name": "Find Rachunki Folder",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -4112,
+        224
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "8rOZXse195CURpXw",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "folder-exists-condition",
+              "leftValue": "={{ $json }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "object",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "54c01ef2-73d7-40ce-9dcf-65c1ee52bd72",
+      "name": "Rachunki Exists Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -3904,
+        224
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "Rachunki",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "root",
+          "cachedResultName": "/ (Root folder)"
+        },
+        "options": {}
+      },
+      "id": "b0e17b7e-9845-4de5-9260-a52508d3b189",
+      "name": "Create Rachunki Folder",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -3680,
+        320
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "8rOZXse195CURpXw",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "try {\n  let rachunkiFolderId;\n  let rachunkiData;\n  \n  const folderData = $('Prepare Folder Structure').first().json;\n  const inputData = $input.all();\n  \n  console.log('=== MERGE RACHUNKI DEBUG ===');\n  console.log('Dane wejściowe:', JSON.stringify(inputData, null, 2));\n  \n  if (!inputData || inputData.length === 0) {\n    throw new Error('Brak danych wejściowych w Merge Rachunki ID');\n  }\n  \n  const firstItem = inputData[0].json;\n  \n  if (firstItem.id && firstItem.name === 'Rachunki') {\n    rachunkiData = firstItem;\n    rachunkiFolderId = firstItem.id;\n    console.log('ŚCIEŻKA: Znaleziono istniejący folder Rachunki:', rachunkiFolderId);\n  }\n  else if (firstItem.id && (firstItem.name === 'Rachunki' || !firstItem.name)) {\n    rachunkiData = firstItem;\n    rachunkiFolderId = firstItem.id;\n    console.log('ŚCIEŻKA: Utworzono nowy folder Rachunki:', rachunkiFolderId);\n  }\n  else {\n    console.error('Nieprawidłowy format danych:', firstItem);\n    throw new Error('Nie można zidentyfikować danych folderu Rachunki');\n  }\n  \n  const result = {\n    ...folderData,\n    rachunkiFolderId: rachunkiFolderId,\n    rachunkiData: rachunkiData\n  };\n  \n  console.log('WYNIK MERGE RACHUNKI:', JSON.stringify(result, null, 2));\n  console.log('=== MERGE RACHUNKI SUKCES ===');\n  \n  return [{ json: result }];\n  \n} catch (error) {\n  console.error('=== MERGE RACHUNKI BŁĄD ===');\n  console.error('Szczegóły błędu:', error.message);\n  \n  return [{\n    json: {\n      error: true,\n      errorMessage: error.message,\n      timestamp: new Date().toISOString(),\n      ...($('Prepare Folder Structure').first().json || {})\n    }\n  }];\n}"
+      },
+      "id": "8bc16dfe-7119-434f-89f1-cf6994eb9e06",
+      "name": "Merge Rachunki ID",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3456,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "queryString": "={{ $json.year }}",
+        "returnAll": true,
+        "filter": {
+          "folderId": {
+            "__rl": true,
+            "value": "={{ $json.rachunkiFolderId }}",
+            "mode": "id"
+          },
+          "includeTrashed": false
+        },
+        "options": {}
+      },
+      "id": "d49c4a8f-477e-4012-ae26-588777b2f3d3",
+      "name": "Find Year Folder",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -3232,
+        224
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "8rOZXse195CURpXw",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "year-exists-condition",
+              "leftValue": "={{ $json }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "object",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "12af9f6c-ab9b-4011-8698-83f17f14e4dc",
+      "name": "Year Exists Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -3024,
+        224
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "={{ $('Merge Rachunki ID').first().json.year }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": "={{ $('Merge Rachunki ID').first().json.rachunkiFolderId }}",
+        "options": {}
+      },
+      "id": "e0a47d7c-956b-4866-a4e7-e9b2a75e4215",
+      "name": "Create Year Folder",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -2800,
+        320
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "8rOZXse195CURpXw",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "try {\n  let yearFolderId;\n  let yearData;\n  \n  const baseData = $('Merge Rachunki ID').first().json;\n  const inputData = $input.all();\n  \n  console.log('=== MERGE YEAR DEBUG ===');\n  console.log('Dane wejściowe:', JSON.stringify(inputData, null, 2));\n  \n  if (!inputData || inputData.length === 0) {\n    throw new Error('Brak danych wejściowych w Merge Year ID');\n  }\n  \n  const firstItem = inputData[0].json;\n  \n  if (Array.isArray(firstItem) && firstItem.length > 0) {\n    yearData = firstItem[0];\n    yearFolderId = yearData.id;\n    console.log('ŚCIEŻKA: Znaleziono istniejący folder roku:', baseData.year, 'ID:', yearFolderId);\n  }\n  else if (firstItem.id && (firstItem.name === baseData.year || !firstItem.name)) {\n    yearData = firstItem;\n    yearFolderId = firstItem.id;\n    console.log('ŚCIEŻKA: Utworzono nowy folder roku:', baseData.year, 'ID:', yearFolderId);\n  }\n  else if (Array.isArray(firstItem) && firstItem.length === 0) {\n    throw new Error('Folder roku nie został znaleziony ani utworzony - sprawdź workflow');\n  }\n  else {\n    console.error('Nieprawidłowy format danych:', firstItem);\n    throw new Error('Nie można zidentyfikować danych folderu roku');\n  }\n  \n  if (!yearFolderId) {\n    throw new Error('Nie udało się pobrać ID folderu roku');\n  }\n  \n  const result = {\n    ...baseData,\n    yearFolderId: yearFolderId,\n    yearData: yearData\n  };\n  \n  console.log('WYNIK MERGE YEAR:', JSON.stringify(result, null, 2));\n  console.log('=== MERGE YEAR SUKCES ===');\n  \n  return [{ json: result }];\n  \n} catch (error) {\n  console.error('=== MERGE YEAR BŁĄD ===');\n  console.error('Szczegóły błędu:', error.message);\n  \n  return [{\n    json: {\n      error: true,\n      errorMessage: error.message,\n      errorType: 'MERGE_YEAR_ERROR',\n      timestamp: new Date().toISOString(),\n      ...($('Merge Rachunki ID').first().json || {})\n    }\n  }];\n}"
+      },
+      "id": "2e946c46-10d5-45c8-855d-50beef82fc54",
+      "name": "Merge Year ID",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2576,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "queryString": "={{ $json.monthFolder }}",
+        "returnAll": true,
+        "filter": {
+          "folderId": {
+            "__rl": true,
+            "value": "={{ $json.yearFolderId }}",
+            "mode": "id"
+          },
+          "includeTrashed": false
+        },
+        "options": {}
+      },
+      "id": "943e2d90-1e24-42d8-8f81-6f1a13931711",
+      "name": "Find Month Folder",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -2384,
+        224
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "8rOZXse195CURpXw",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "month-exists-condition",
+              "leftValue": "={{ $json.name }}",
+              "rightValue": "={{ $('Merge Rachunki ID').item.json.monthFolder }}",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "d7e6dea2-6edf-4618-99c1-93e126a3fd62",
+      "name": "Month Exists Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -2176,
+        224
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "={{ $('Merge Year ID').item.json.monthFolder }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('Find Year Folder').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "id": "3b929ad7-1916-4eb5-9d12-c8f8597e485e",
+      "name": "Create Month Folder",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -2016,
+        368
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "8rOZXse195CURpXw",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "Prywatne",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": "={{ $('Merge Month ID1').first().json.monthFolderId }}",
+        "options": {}
+      },
+      "id": "73ac157c-b3a0-4206-8c5b-0553343893fd",
+      "name": "Create Prywatne",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -1008,
+        128
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "8rOZXse195CURpXw",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "Firmowe",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": "={{ $('Merge Month ID1').first().json.monthFolderId }}",
+        "options": {}
+      },
+      "id": "ec791ec1-7d5d-4883-957b-5dd1882b72e0",
+      "name": "Create Firmowe",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -1008,
+        528
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "8rOZXse195CURpXw",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "MT HUB",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": "={{ $('Merge Firmowe ID1').first().json.firmoweId }}",
+        "options": {}
+      },
+      "id": "0675a573-9564-492f-b83d-7fbaa22d236f",
+      "name": "Create MT HUB",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -64,
+        336
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "8rOZXse195CURpXw",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "FHU",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": "={{ $('Merge Firmowe ID1').first().json.firmoweId }}",
+        "options": {}
+      },
+      "id": "31af7ffe-0e03-408d-9661-6e11ffe75a67",
+      "name": "Create FHU",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -80,
+        656
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "8rOZXse195CURpXw",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// ROZWIĄZANIE PROBLEMU 5 ELEMENTÓW - Final Summary\ntry {\n  // Pobierz wszystkie dane wejściowe ale ZAWSZE zwróć jeden element\n  const allInputData = $input.all();\n  console.log('=== KONTROLA ELEMENTÓW WEJŚCIOWYCH ===');\n  console.log('Liczba elementów wejściowych:', allInputData.length);\n  \n  // Wybierz pierwszy element jako główny (lub scal dane z wszystkich)\n  const primaryData = allInputData[0]?.json || {};\n  \n  // Pobierz dane z węzłów Merge\n  let mtHubId = null;\n  let fhuId = null;\n  \n  try {\n    const mtHubData = $('Merge MTHUB ID').first()?.json;\n    mtHubId = mtHubData?.mtHubId || '172YjNf2ixkLF6w-V91ZRmUwAsEefpasc';\n  } catch (error) {\n    mtHubId = '172YjNf2ixkLF6w-V91ZRmUwAsEefpasc';\n  }\n  \n  try {\n    const fhuData = $('Merge FHU ID').first()?.json;\n    fhuId = fhuData?.fhuId || '1P_5ZEEYzEdIz8AbTVEnbVkLvVWzJpcge';\n  } catch (error) {\n    fhuId = '1P_5ZEEYzEdIz8AbTVEnbVkLvVWzJpcge';\n  }\n  \n  // POJEDYNCZY ELEMENT WYJŚCIOWY\n  const singleOutput = {\n    success: true,\n    timestamp: new Date().toISOString(),\n    year: new Date().getFullYear(),\n    month: new Date().getMonth() + 1,\n    month_name: ['Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'][new Date().getMonth()],\n    \n    // ID folderów dla HTTP Request\n    rachunki_id: '1BSeA4AckuZtGtldGOErZwZVPs63qNjy9',\n    year_id: '1bh9LBe-5H2MPAIJwG0c963DHUQWOPW1W',\n    month_id: '1DkrLin21cf1r2OosPS-ucFU_EmFOiJmD',\n    prywatne_id: '1NjEOGXI2DEwRitQB6YeWibGfC57GuJcR',\n    firmowe_id: '15gLNUf4MSwQgrzPQB-Cd0BHucyE61IJR',\n    mt_hub_id: mtHubId,\n    fhu_id: fhuId,\n    \n    // Informacje debugowania\n    inputCount: allInputData.length,\n    mergedFrom: 'multiple-inputs-consolidated',\n    \n    foldersCreated: [\n      { name: 'Rachunki', id: '1BSeA4AckuZtGtldGOErZwZVPs63qNjy9', level: 1, status: 'processed' },\n      { name: '2025', id: '1bh9LBe-5H2MPAIJwG0c963DHUQWOPW1W', level: 2, status: 'processed' },\n      { name: '07 - Lipiec', id: '1DkrLin21cf1r2OosPS-ucFU_EmFOiJmD', level: 3, status: 'existing' },\n      { name: 'Prywatne', id: '1NjEOGXI2DEwRitQB6YeWibGfC57GuJcR', level: 4, status: 'existing' },\n      { name: 'Firmowe', id: '15gLNUf4MSwQgrzPQB-Cd0BHucyE61IJR', level: 4, status: 'existing' },\n      { name: 'MT HUB', id: mtHubId, level: 5, status: 'existing' },\n      { name: 'FHU', id: fhuId, level: 5, status: 'existing' }\n    ],\n    \n    optimizations: {\n      foldersReused: 5,\n      foldersCreated: 0,\n      apiCallsSaved: 10\n    },\n    \n    message: `Skonsolidowano ${allInputData.length} elementów wejściowych w JEDEN element wyjściowy`\n  };\n  \n  console.log('=== GWARANTOWANY JEDEN ELEMENT WYJŚCIOWY ===');\n  console.log('Dane wyjściowe:', JSON.stringify(singleOutput, null, 2));\n  \n  // KLUCZOWE: ZAWSZE zwraca dokładnie jeden element\n  return [{ json: singleOutput }];\n  \n} catch (error) {\n  console.error('=== BŁĄD FINAL SUMMARY ===');\n  console.error('Szczegóły:', error.message);\n  \n  // Nawet błąd zwracany jako jeden element\n  return [{\n    json: {\n      error: true,\n      errorMessage: error.message,\n      timestamp: new Date().toISOString(),\n      inputCount: 1,\n      message: 'Błąd - ale nadal jeden element wyjściowy'\n    }\n  }];\n}\n"
+      },
+      "id": "c424fe54-a771-4f98-a4a4-41bb8a70b64b",
+      "name": "Final Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://oxzirafbqwkeocekzqbe.supabase.co/rest/v1/folder_registry?on_conflict=year,month&select=*\n",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  year: $json.year,\n  month: $json.month,\n  month_name: $json.month_name,\n  rachunki_id: $json.rachunki_id,\n  year_id: $json.year_id,\n  month_id: $json.month_id,\n  prywatne_id: $json.prywatne_id,\n  firmowe_id: $json.firmowe_id,\n  mt_hub_id: $json.mt_hub_id,\n  fhu_id: $json.fhu_id,\n  updated_at: new Date().toISOString()\n}) }}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        912,
+        304
+      ],
+      "id": "eebaf174-c121-4b68-b66b-dec8b09a9e19",
+      "name": "HTTP UPSERT to Supabase",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "pNSSt5wAQlRfIO2r",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "try {\n  let monthFolderId;\n  let monthData;\n  \n  const baseData = $('Merge Year ID').first().json;\n  const inputData = $input.all();\n  \n  console.log('=== MERGE MONTH DEBUG ===');\n  console.log('Dane wejściowe:', JSON.stringify(inputData, null, 2));\n  \n  if (!inputData || inputData.length === 0) {\n    throw new Error('Brak danych wejściowych w Merge Month ID');\n  }\n  \n  const firstItem = inputData[0].json;\n  \n  if (Array.isArray(firstItem) && firstItem.length > 0) {\n    const monthFolder = firstItem.find(folder => folder.name && folder.name.includes(baseData.monthName));\n    if (monthFolder) {\n      monthData = monthFolder;\n      monthFolderId = monthFolder.id;\n      console.log('ŚCIEŻKA: Znaleziono istniejący folder miesiąca:', monthFolder.name, 'ID:', monthFolderId);\n    } else {\n      throw new Error('Nie znaleziono folderu miesiąca w wynikach wyszukiwania');\n    }\n  }\n  else if (firstItem.id && (firstItem.name === baseData.monthFolder || firstItem.name && firstItem.name.includes(baseData.monthName))) {\n    monthData = firstItem;\n    monthFolderId = firstItem.id;\n    console.log('ŚCIEŻKA: Utworzono nowy folder miesiąca:', firstItem.name, 'ID:', monthFolderId);\n  }\n  else if (firstItem.id && firstItem.name && firstItem.name.includes(baseData.monthName)) {\n    monthData = firstItem;\n    monthFolderId = firstItem.id;\n    console.log('ŚCIEŻKA: Znaleziono folder miesiąca (format pojedynczy):', firstItem.name, 'ID:', monthFolderId);\n  }\n  else if (Array.isArray(firstItem) && firstItem.length === 0) {\n    throw new Error('Folder miesiąca nie został znaleziony ani utworzony - sprawdź workflow');\n  }\n  else {\n    console.error('Nieprawidłowy format danych miesiąca:', firstItem);\n    console.error('Oczekiwany monthFolder:', baseData.monthFolder);\n    throw new Error('Nie można zidentyfikować danych folderu miesiąca');\n  }\n  \n  if (!monthFolderId) {\n    throw new Error('Nie udało się pobrać ID folderu miesiąca');\n  }\n  \n  const result = {\n    ...baseData,\n    monthFolderId: monthFolderId,\n    monthData: monthData\n  };\n  \n  console.log('WYNIK MERGE MONTH:', JSON.stringify(result, null, 2));\n  console.log('=== MERGE MONTH SUKCES ===');\n  \n  return [{ json: result }];\n  \n} catch (error) {\n  console.error('=== MERGE MONTH BŁĄD ===');\n  console.error('Szczegóły błędu:', error.message);\n  \n  return [{\n    json: {\n      error: true,\n      errorMessage: error.message,\n      errorType: 'MERGE_MONTH_ERROR',\n      timestamp: new Date().toISOString(),\n      ...($('Merge Year ID').first().json || {})\n    }\n  }];\n}"
+      },
+      "id": "2f06997e-68c5-4d4c-9ae8-96d01164d1f1",
+      "name": "Merge Month ID1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1744,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "searchMethod": "query",
+        "queryString": "name=\"Prywatne\"",
+        "returnAll": true,
+        "filter": {
+          "folderId": {
+            "__rl": true,
+            "value": "={{ $json.monthFolderId }}",
+            "mode": "id"
+          },
+          "includeTrashed": false
+        },
+        "options": {}
+      },
+      "id": "df667af2-7f9f-44d0-9dd1-bc03064d1f0d",
+      "name": "Find Prywatne Folder1",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -1504,
+        64
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "8rOZXse195CURpXw",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "prywatne-exists-condition",
+              "leftValue": "={{ $json.name }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "a529d958-96c6-4d9f-a563-6ea5a4603718",
+      "name": "Prywatne Exists Check1",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -1280,
+        64
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "try {\n  let prywatneId;\n  let prywatneData;\n  \n  const baseData = $('Merge Month ID1').first().json;\n  const inputData = $input.all();\n  \n  console.log('=== MERGE PRYWATNE DEBUG ===');\n  console.log('Dane wejściowe:', JSON.stringify(inputData, null, 2));\n  \n  if (!inputData || inputData.length === 0) {\n    throw new Error('Brak danych wejściowych w Merge Prywatne ID');\n  }\n  \n  const firstItem = inputData[0].json;\n  \n  if (Array.isArray(firstItem) && firstItem.length > 0) {\n    prywatneData = firstItem[0];\n    prywatneId = prywatneData.id;\n    console.log('ŚCIEŻKA: Znaleziono folder Prywatne:', prywatneId);\n  }\n  else if (firstItem.id && firstItem.name === 'Prywatne') {\n    prywatneData = firstItem;\n    prywatneId = firstItem.id;\n    console.log('ŚCIEŻKA: Utworzono folder Prywatne:', prywatneId);\n  }\n  else {\n    throw new Error('Nie można zidentyfikować folderu Prywatne');\n  }\n  \n  return [{\n    json: {\n      ...baseData,\n      prywatneId: prywatneId,\n      prywatneData: prywatneData\n    }\n  }];\n  \n} catch (error) {\n  console.error('Błąd Merge Prywatne:', error.message);\n  return [{\n    json: {\n      error: true,\n      errorMessage: error.message,\n      ...($('Merge Month ID1').first().json || {})\n    }\n  }];\n}"
+      },
+      "id": "c3d8a3e3-a84e-4eee-bdde-dc6b6ced341b",
+      "name": "Merge Prywatne ID1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -832,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "searchMethod": "query",
+        "queryString": "name=\"Firmowe\"",
+        "returnAll": true,
+        "filter": {
+          "folderId": {
+            "__rl": true,
+            "value": "={{ $json.monthFolderId }}",
+            "mode": "id"
+          },
+          "includeTrashed": false
+        },
+        "options": {}
+      },
+      "id": "6f9bee9d-8a8b-402f-acc7-983411315220",
+      "name": "Find Firmowe Folder1",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -1488,
+        384
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "8rOZXse195CURpXw",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "firmowe-exists-condition",
+              "leftValue": "={{ $json.name }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "9a1f3a2b-9351-4f44-890d-0fb209a32c88",
+      "name": "Firmowe Exists Check1",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -1264,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "try {\n  let firmoweId;\n  let firmoweData;\n  \n  const baseData = $('Merge Month ID1').first().json;\n  const inputData = $input.all();\n  \n  console.log('=== MERGE FIRMOWE DEBUG ===');\n  console.log('Dane wejściowe:', JSON.stringify(inputData, null, 2));\n  \n  if (!inputData || inputData.length === 0) {\n    throw new Error('Brak danych wejściowych w Merge Firmowe ID');\n  }\n  \n  const firstItem = inputData[0].json;\n  \n  if (Array.isArray(firstItem) && firstItem.length > 0) {\n    firmoweData = firstItem[0];\n    firmoweId = firmoweData.id;\n    console.log('ŚCIEŻKA: Znaleziono folder Firmowe:', firmoweId);\n  }\n  else if (firstItem.id && firstItem.name === 'Firmowe') {\n    firmoweData = firstItem;\n    firmoweId = firstItem.id;\n    console.log('ŚCIEŻKA: Utworzono folder Firmowe:', firmoweId);\n  }\n  else {\n    throw new Error('Nie można zidentyfikować folderu Firmowe');\n  }\n  \n  return [{\n    json: {\n      ...baseData,\n      firmoweId: firmoweId,\n      firmoweData: firmoweData\n    }\n  }];\n  \n} catch (error) {\n  console.error('Błąd Merge Firmowe:', error.message);\n  return [{\n    json: {\n      error: true,\n      errorMessage: error.message,\n      ...($('Merge Month ID1').first().json || {})\n    }\n  }];\n}"
+      },
+      "id": "bb76b3dc-43b3-45ac-9cd4-146562893c61",
+      "name": "Merge Firmowe ID1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -816,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "searchMethod": "query",
+        "queryString": "name=\"MT HUB\"",
+        "returnAll": true,
+        "filter": {
+          "folderId": {
+            "__rl": true,
+            "value": "={{ $json.firmoweId }}",
+            "mode": "id"
+          },
+          "includeTrashed": false
+        },
+        "options": {}
+      },
+      "id": "8be72711-4c42-4ba6-a338-4fa3e3aaa135",
+      "name": "Find MT HUB Folder1",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -592,
+        304
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "8rOZXse195CURpXw",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "mthub-exists-condition",
+              "leftValue": "={{ $json.name }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "bfaa686f-aad1-46cd-ab73-b27ed7355898",
+      "name": "MT HUB Exists Check1",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "searchMethod": "query",
+        "queryString": "name=\"FHU\"",
+        "returnAll": true,
+        "filter": {
+          "folderId": {
+            "__rl": true,
+            "value": "={{ $json.firmoweId }}",
+            "mode": "id"
+          },
+          "includeTrashed": false
+        },
+        "options": {}
+      },
+      "id": "90e67afc-9515-4f0e-8a97-2e71908cdde9",
+      "name": "Find FHU Folder1",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -592,
+        464
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "8rOZXse195CURpXw",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "fhu-exists-condition",
+              "leftValue": "={{ $json.name }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "c36d7f84-5511-4e90-bbab-7c95c7fdb8d7",
+      "name": "FHU Exists Check1",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        464
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "try {\n  let mtHubId;\n  let mtHubData;\n  \n  const baseData = $('Merge Firmowe ID1').first().json;\n  const inputData = $input.all();\n  \n  console.log('=== MERGE MT HUB DEBUG ===');\n  console.log('Dane wejściowe:', JSON.stringify(inputData, null, 2));\n  \n  if (!inputData || inputData.length === 0) {\n    throw new Error('Brak danych wejściowych w Merge MT HUB ID');\n  }\n  \n  const firstItem = inputData[0].json;\n  \n  // Sprawdź czy to tablica wyników z Find\n  if (Array.isArray(firstItem) && firstItem.length > 0) {\n    mtHubData = firstItem[0];\n    mtHubId = mtHubData.id;\n    console.log('ŚCIEŻKA: Znaleziono folder MT HUB:', mtHubId);\n  }\n  // Sprawdź czy to pojedynczy wynik z Create\n  else if (firstItem.id && firstItem.name === 'MT HUB') {\n    mtHubData = firstItem;\n    mtHubId = firstItem.id;\n    console.log('ŚCIEŻKA: Utworzono folder MT HUB:', mtHubId);\n  }\n  else {\n    throw new Error('Nie można zidentyfikować folderu MT HUB');\n  }\n  \n  return [{\n    json: {\n      ...baseData,\n      mtHubId: mtHubId,\n      mtHubData: mtHubData\n    }\n  }];\n  \n} catch (error) {\n  console.error('Błąd Merge MT HUB:', error.message);\n  return [{\n    json: {\n      error: true,\n      errorMessage: error.message,\n      ...($('Merge Firmowe ID1').first().json || {})\n    }\n  }];\n}\n"
+      },
+      "id": "a608842d-dddc-47d9-ad38-a2f27e6c948b",
+      "name": "Merge MTHUB ID",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        176,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "try {\n  let fhuId;\n  let fhuData;\n  \n  const baseData = $('Merge Firmowe ID1').first().json;\n  const inputData = $input.all();\n  \n  console.log('=== MERGE FHU DEBUG ===');\n  console.log('Dane wejściowe:', JSON.stringify(inputData, null, 2));\n  \n  if (!inputData || inputData.length === 0) {\n    throw new Error('Brak danych wejściowych w Merge FHU ID');\n  }\n  \n  const firstItem = inputData[0].json;\n  \n  // Sprawdź czy to tablica wyników z Find\n  if (Array.isArray(firstItem) && firstItem.length > 0) {\n    fhuData = firstItem[0];\n    fhuId = fhuData.id;\n    console.log('ŚCIEŻKA: Znaleziono folder FHU:', fhuId);\n  }\n  // Sprawdź czy to pojedynczy wynik z Create\n  else if (firstItem.id && firstItem.name === 'FHU') {\n    fhuData = firstItem;\n    fhuId = firstItem.id;\n    console.log('ŚCIEŻKA: Utworzono folder FHU:', fhuId);\n  }\n  else {\n    throw new Error('Nie można zidentyfikować folderu FHU');\n  }\n  \n  return [{\n    json: {\n      ...baseData,\n      fhuId: fhuId,\n      fhuData: fhuData\n    }\n  }];\n  \n} catch (error) {\n  console.error('Błąd Merge FHU:', error.message);\n  return [{\n    json: {\n      error: true,\n      errorMessage: error.message,\n      ...($('Merge Firmowe ID1').first().json || {})\n    }\n  }];\n}\n"
+      },
+      "id": "f2ba9634-738d-420a-a598-7b6102f922b6",
+      "name": "Merge FHU ID",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        176,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "months"
+            }
+          ]
+        }
+      },
+      "id": "4160c423-4ebd-461d-875a-407a4566c139",
+      "name": "Schedule Trigger1",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -4640,
+        224
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Prepare Folder Structure": {
+      "main": [
+        [
+          {
+            "node": "Find Rachunki Folder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Rachunki Folder": {
+      "main": [
+        [
+          {
+            "node": "Rachunki Exists Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rachunki Exists Check": {
+      "main": [
+        [
+          {
+            "node": "Merge Rachunki ID",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create Rachunki Folder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Rachunki Folder": {
+      "main": [
+        [
+          {
+            "node": "Merge Rachunki ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Rachunki ID": {
+      "main": [
+        [
+          {
+            "node": "Find Year Folder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Year Folder": {
+      "main": [
+        [
+          {
+            "node": "Year Exists Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Year Exists Check": {
+      "main": [
+        [
+          {
+            "node": "Merge Year ID",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create Year Folder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Year Folder": {
+      "main": [
+        [
+          {
+            "node": "Merge Year ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Year ID": {
+      "main": [
+        [
+          {
+            "node": "Find Month Folder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Month Folder": {
+      "main": [
+        [
+          {
+            "node": "Month Exists Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Month Exists Check": {
+      "main": [
+        [
+          {
+            "node": "Merge Month ID1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create Month Folder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Month Folder": {
+      "main": [
+        [
+          {
+            "node": "Merge Month ID1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Prywatne": {
+      "main": [
+        [
+          {
+            "node": "Merge Prywatne ID1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Firmowe": {
+      "main": [
+        [
+          {
+            "node": "Merge Firmowe ID1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create MT HUB": {
+      "main": [
+        [
+          {
+            "node": "Merge MTHUB ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create FHU": {
+      "main": [
+        [
+          {
+            "node": "Merge FHU ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Final Summary": {
+      "main": [
+        [
+          {
+            "node": "HTTP UPSERT to Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Month ID1": {
+      "main": [
+        [
+          {
+            "node": "Find Prywatne Folder1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Find Firmowe Folder1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Prywatne Folder1": {
+      "main": [
+        [
+          {
+            "node": "Prywatne Exists Check1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prywatne Exists Check1": {
+      "main": [
+        [
+          {
+            "node": "Merge Prywatne ID1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create Prywatne",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Prywatne ID1": {
+      "main": [
+        [
+          {
+            "node": "Final Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Firmowe Folder1": {
+      "main": [
+        [
+          {
+            "node": "Firmowe Exists Check1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Firmowe Exists Check1": {
+      "main": [
+        [
+          {
+            "node": "Merge Firmowe ID1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create Firmowe",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Firmowe ID1": {
+      "main": [
+        [
+          {
+            "node": "Find MT HUB Folder1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Find FHU Folder1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find MT HUB Folder1": {
+      "main": [
+        [
+          {
+            "node": "MT HUB Exists Check1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MT HUB Exists Check1": {
+      "main": [
+        [
+          {
+            "node": "Merge MTHUB ID",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create MT HUB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find FHU Folder1": {
+      "main": [
+        [
+          {
+            "node": "FHU Exists Check1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FHU Exists Check1": {
+      "main": [
+        [
+          {
+            "node": "Merge FHU ID",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create FHU",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge MTHUB ID": {
+      "main": [
+        [
+          {
+            "node": "Final Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge FHU ID": {
+      "main": [
+        [
+          {
+            "node": "Final Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Prepare Folder Structure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "4f8f139f-16e3-4be5-aeda-ccad5c19a6ea",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bf72b9fcc7a9ac2b514d2ba3ec6fb953375a71d78fa918c9013d959f21219785"
+  },
+  "id": "jVsTrThosaWjQUuH",
+  "tags": [
+    {
+      "createdAt": "2025-07-28T10:07:01.297Z",
+      "updatedAt": "2025-07-28T10:07:01.297Z",
+      "id": "164ADvt3nN3G72Sp",
+      "name": "google sheets"
+    },
+    {
+      "createdAt": "2025-07-28T10:07:01.243Z",
+      "updatedAt": "2025-07-28T10:07:01.243Z",
+      "id": "Addsn53bu1g4LvHI",
+      "name": "zoptymalizowane"
+    },
+    {
+      "createdAt": "2025-07-28T10:07:01.192Z",
+      "updatedAt": "2025-07-28T10:07:01.192Z",
+      "id": "LOd0cetFnE80M1D4",
+      "name": "wydatki"
+    },
+    {
+      "createdAt": "2025-07-28T10:07:01.166Z",
+      "updatedAt": "2025-07-28T10:07:01.166Z",
+      "id": "bJc29Xlm2TySjST0",
+      "name": "ai-agent"
+    },
+    {
+      "createdAt": "2025-07-28T10:07:01.270Z",
+      "updatedAt": "2025-07-28T10:07:01.270Z",
+      "id": "xjQtcSCc5QyqL1WT",
+      "name": "OpenAI"
+    },
+    {
+      "createdAt": "2025-07-28T10:07:01.118Z",
+      "updatedAt": "2025-07-28T10:07:01.118Z",
+      "id": "z7IBaChQddaqPobK",
+      "name": "speech-to-text"
+    },
+    {
+      "createdAt": "2025-07-28T10:07:01.217Z",
+      "updatedAt": "2025-07-28T10:07:01.217Z",
+      "id": "ziStPKLBO5ICJkXX",
+      "name": "telegram"
+    }
+  ]
+}

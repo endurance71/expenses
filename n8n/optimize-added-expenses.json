@@ -11,7 +11,7 @@
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1.1,
       "position": [
-        -4592,
+        -5200,
         112
       ],
       "id": "bcb6389d-2f59-4aaa-9483-c09705224700",
@@ -29,7 +29,7 @@
         "promptType": "define",
         "text": "Zarejestrowany wydatek: \"{{ $json.text }}\" lub \"{{ $json.content }}\" lub {{ $binary }}",
         "options": {
-          "systemMessage": "=Instrukcje Systemowe dla Agenta\n\nJesteś asystentem do zarządzania wydatkami. Twoim zadaniem jest przeanalizowanie wiadomości i ewentualnych załączników (paragonów, faktur) oraz dodanie wydatku do arkusza Google Sheets. Jeśli to możliwe, prześlij też załącznik do Google Drive. Działasz w jednej iteracji.\n\n⸻\n\nWyodrębnij następujące dane:\n\t1.\tData – w formacie RRRR-MM-DD, strefa Europe/Warsaw.\n\t•\tWzględne daty (np. “wczoraj”) przelicz względem {{ $now.setZone('Europe/Warsaw') }}.\n\t•\tJeśli brak → null.\n\t2.\tMiejsce/Przedmiot – gdzie/na co wydano.\n\t•\tJeśli brak → null.\n\t3.\tKwota – liczba dziesiętna z kropką jako separatorem, bez symbolu waluty.\n\t•\tPrzykład: “49,99 zł” → 49.99.\n\t•\tJeśli brak → null.\n\t4.\tKategoria – Prywatne, MT HUB, FHU Gabriela.\nZasady klasyfikacji:\n\t•\tJeśli dokument zawiera NIP 8393229228 → MT HUB\n\t•\tJeśli dokument zawiera NIP 8393251475 → FHU\n\t•\tW pozostałych przypadkach, jeśli nie ma pewności lub brak danych → prywatny\n\t\t5.\tSubKategoria:\n• Jeśli kategoria to Prywatne, przypisz szczegółową subkategorię wydatku, np. Żywność, Odzież, Transport, Rozrywka, Zdrowie, Hobby, RTV/AGD, inne.\n• Jeśli kategoria to MT HUB → subkategoria: MT_HUB\n• Jeśli kategoria to FHU Gabriela → subkategoria: FHU\n⸻\n🔠 UWAGA: Zwracaj szczególną uwagę na wielkość liter. Kategoria i subkategoria muszą dokładnie odpowiadać wzorcowi (case-sensitive). Nie przekształcaj ani nie normalizuj wielkości liter.\nPrzykładowo:\n\t•\tPrywatne, Firmowe - prawidłowe\n    •\tMT_HUB, FHU – prawidłowe\n\t•\tMt Hub, mt hub, MTHub, prywatne, firmowe – nieprawidłowe\n\nTo samo dotyczy kategorii Prywatne i FHU.\n\nNarzędzia dodaj_wydatek_do_bazy (użyj tylko, jeśli wszystkie dane są dostępne)\nwydatek_folder_id:\n\t•\tJeśli Prywatne → {{ $('Get a row').item.json.prywatne_id }}\n\t•\tJeśli MT HUB → {{ $('Get a row').item.json.mt_hub_id }}\n\t•\tJeśli FHU → {{ $('Get a row').item.json.fhu_id }}\n⸻\n\nFormat odpowiedzi\n\nSukces\n\n✅ Wydatek dodany:\n• 📅 Data:\n• 🏷️ Miejsce/Przedmiot:\n• 💸 Kwota: (zł, przecinek jako separator)\n• 🔖 Kategoria:\n\n\nTylko załącznik\n\n📸 Załącznik przesłany do Google Drive. Brak danych do dodania wydatku.\n\nProblem\n\n🔴 Problem z dodaniem wydatku. Brakuje danych o:",
+          "systemMessage": "=Instrukcje Systemowe dla Agenta\n\nJesteś asystentem do zarządzania wydatkami. Twoim zadaniem jest przeanalizowanie wiadomości i ewentualnych załączników (paragonów, faktur) oraz dodanie wydatku do arkusza Google Sheets. Jeśli to możliwe, prześlij też załącznik do Google Drive. Działasz w jednej iteracji.\n\n⸻\n\nWyodrębnij następujące dane:\n\t1.\tData – w formacie RRRR-MM-DD, strefa Europe/Warsaw.\n\t•\tWzględne daty (np. “wczoraj”) przelicz względem {{ $now.setZone('Europe/Warsaw') }}.\n\t•\tJeśli brak → null.\n\t2.\tMiejsce/Przedmiot – gdzie/na co wydano.\n\t•\tJeśli brak → null.\n\t3.\tKwota – liczba dziesiętna z kropką jako separatorem, bez symbolu waluty.\n\t•\tPrzykład: “49,99 zł” → 49.99.\n\t•\tJeśli brak → null.\n\t4.\tKategoria – Prywatne, MT HUB, FHU Gabriela.\nZasady klasyfikacji:\n\t•\tJeśli dokument zawiera NIP 8393229228 → MT HUB\n\t•\tJeśli dokument zawiera NIP 8393251475 → FHU\n\t•\tW pozostałych przypadkach, jeśli nie ma pewności lub brak danych → prywatny\n\t\t5.\tSubKategoria:\n• Jeśli kategoria to Prywatne, przypisz szczegółową subkategorię wydatku, np. Żywność, Odzież, Transport, Rozrywka, Zdrowie, Hobby, RTV/AGD, inne.\n• Jeśli kategoria to MT HUB → subkategoria: MT_HUB\n• Jeśli kategoria to FHU Gabriela → subkategoria: FHU\n⸻\n🔠 UWAGA: Zwracaj szczególną uwagę na wielkość liter. Kategoria i subkategoria muszą dokładnie odpowiadać wzorcowi (case-sensitive). Nie przekształcaj ani nie normalizuj wielkości liter.\nPrzykładowo:\n\t•\tPrywatne, Firmowe - prawidłowe\n    •\tMT_HUB, FHU – prawidłowe\n\t•\tMt Hub, mt hub, MTHub, prywatne, firmowe – nieprawidłowe\n\nTo samo dotyczy kategorii Prywatne i FHU.\n\nNarzędzia dodaj_wydatek_do_bazy (użyj tylko, jeśli wszystkie dane są dostępne)\nwydatek_folder_id:\n\t•\tJeśli Prywatne → {{ $('Get a row').item.json.prywatne_id }}\n\t•\tJeśli MT HUB → {{ $('Get a row').item.json.mt_hub_id }}\n\t•\tJeśli FHU → {{ $('Get a row').item.json.fhu_id }}\n\n\n\nDla receipt_image_url: {{ $json.secure_url }}\n⸻\n\nFormat odpowiedzi\n\nSukces\n\n✅ Wydatek dodany:\n• 📅 Data:\n• 🏷️ Miejsce/Przedmiot:\n• 💸 Kwota: (zł, przecinek jako separator)\n• 🔖 Kategoria:\n\n\nTylko załącznik\n\n📸 Załącznik przesłany do Google Drive. Brak danych do dodania wydatku.\n\nProblem\n\n🔴 Problem z dodaniem wydatku. Brakuje danych o:",
           "passthroughBinaryImages": true
         }
       },
@@ -188,7 +188,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -4128,
+        -4736,
         128
       ],
       "id": "047a41aa-2012-4901-8d4c-cf53e70fc6da",
@@ -343,8 +343,8 @@
       "type": "n8n-nodes-base.googleDrive",
       "typeVersion": 3,
       "position": [
-        -1168,
-        272
+        -1312,
+        256
       ],
       "id": "4f302a50-b7d4-4cc0-ab3d-160aae8937c8",
       "name": "Download file",
@@ -426,7 +426,7 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        -4400,
+        -5008,
         112
       ],
       "id": "a2b3edd1-23be-4da8-81c1-c6f77f97897b",
@@ -672,7 +672,7 @@
             },
             {
               "fieldId": "receipt_image_url",
-              "fieldValue": "={{ $('Upload to Cloudinary').item.json[''] }}"
+              "fieldValue": "={{ $('Upload to Cloudinary').item.json.secure_url }}"
             }
           ]
         }
@@ -701,7 +701,7 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        -3872,
+        -4480,
         128
       ],
       "id": "48d4d2cd-c2db-43d7-b324-fb0bc043612f",
@@ -900,8 +900,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -3648,
-        -32
+        -4192,
+        128
       ],
       "id": "e4e0fc81-8ce0-409f-9023-a0ab78b68c61",
       "name": "Upload to Cloudinary",
@@ -909,6 +909,28 @@
         "httpBasicAuth": {
           "id": "eZDYcGhDriOGA2pH",
           "name": "Cloudinary"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $('Telegram Trigger').item.json.message.photo.last().file_id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -4016,
+        128
+      ],
+      "id": "7b5fc949-555c-43b0-85e2-da5cb44094c5",
+      "name": "Get a file2",
+      "webhookId": "f958eab9-5219-4d94-acfb-50092befd378",
+      "credentials": {
+        "telegramApi": {
+          "id": "kqhvYA6vDQAVpAI6",
+          "name": "Telegram account"
         }
       }
     }
@@ -1137,11 +1159,6 @@
       "main": [
         [
           {
-            "node": "change mimetype",
-            "type": "main",
-            "index": 0
-          },
-          {
             "node": "Upload to Cloudinary",
             "type": "main",
             "index": 0
@@ -1210,13 +1227,35 @@
           }
         ]
       ]
+    },
+    "Upload to Cloudinary": {
+      "main": [
+        [
+          {
+            "node": "Get a file2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a file2": {
+      "main": [
+        [
+          {
+            "node": "change mimetype",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "c2045572-fdf0-4b59-a5c6-647d00f5ace6",
+  "versionId": "0443c4e7-7248-4aed-b8f9-c4f71ada0c11",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "bf72b9fcc7a9ac2b514d2ba3ec6fb953375a71d78fa918c9013d959f21219785"
